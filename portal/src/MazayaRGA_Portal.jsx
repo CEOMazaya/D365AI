@@ -545,6 +545,16 @@ function LoginScreen({onLogin,users}){
   const icons=["🔐","🌐","🛡","👤","✅"];
 
   const startO365=()=>{
+    // If the backend + Entra ID are configured (VITE_* env vars present), real
+    // MSAL sign-in is handled by storage-shim.js / the API. Until then, this
+    // portal has no live sign-in — make that explicit rather than faking it.
+    const configured = Boolean(
+      import.meta.env.VITE_API_BASE_URL && import.meta.env.VITE_AAD_CLIENT_ID
+    );
+    if(!configured){
+      alert("Microsoft 365 sign-in isn't connected yet.\n\nThis portal needs its backend and Entra ID configuration before users can sign in. Contact your Mazaya administrator.");
+      return;
+    }
     setPhase("flow"); setStep(0);
     let s=0;
     const nxt=()=>{s++;setStep(s);if(s<steps.length)setTimeout(nxt,700);else setPhase("email");};
@@ -558,7 +568,6 @@ function LoginScreen({onLogin,users}){
   };
 
   const ut=USER_TYPES;
-  const demoUsers=Object.values(users).slice(0,6);
 
   return(
     <div style={{minHeight:"100vh",background:NAVY,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
@@ -577,20 +586,6 @@ function LoginScreen({onLogin,users}){
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="1" y="1" width="8" height="8" fill="#f25022"/><rect x="11" y="1" width="8" height="8" fill="#7fba00"/><rect x="1" y="11" width="8" height="8" fill="#00a4ef"/><rect x="11" y="11" width="8" height="8" fill="#ffb900"/></svg>
             <span style={{fontSize:14,fontWeight:600,color:"#1a2633"}}>Continue with Microsoft 365</span>
           </button>
-          <div style={{borderTop:"1px solid var(--bdr)",paddingTop:16}}>
-            <div style={{fontSize:11,color:"var(--t3)",textAlign:"center",marginBottom:10,textTransform:"uppercase",letterSpacing:".05em"}}>Demo — select account</div>
-            <div style={{display:"flex",flexDirection:"column",gap:6}}>
-              {demoUsers.map(u=>{const ut2=USER_TYPES[u.user_type];return(
-                <button key={u.id} onClick={()=>onLogin(u)} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 11px",borderRadius:8,border:"1px solid var(--bdr)",background:"var(--bg)",cursor:"pointer",textAlign:"left",fontFamily:"var(--fh)",transition:"background .15s"}}
-                  onMouseEnter={e=>e.currentTarget.style.background="#f0f9ff"}
-                  onMouseLeave={e=>e.currentTarget.style.background="var(--bg)"}>
-                  <div className="av" style={{width:30,height:30,fontSize:11,background:avClr(u.name),color:"white"}}>{ini(u.name)}</div>
-                  <div style={{flex:1}}><div style={{fontWeight:600,fontSize:12,color:"var(--t)"}}>{u.name}</div><div style={{fontSize:11,color:"var(--t3)"}}>{ut2?.label}</div></div>
-                  <span style={{fontSize:10,color:ut2?.org==="mazaya"?NAVY:ORANGE,fontWeight:600}}>{ut2?.org==="mazaya"?"Mazaya":"Customer"}</span>
-                </button>
-              );})}
-            </div>
-          </div>
         </>}
 
         {phase==="flow"&&<div style={{textAlign:"center",padding:"24px 0"}}>
