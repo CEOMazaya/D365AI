@@ -18,10 +18,15 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Me()
     {
         var user = await _current.ResolveAsync(User);
-        if (user == null) return Unauthorized();
+        if (user == null)
+        {
+            // DIAGNOSTIC: surface the token's claim types in the response so we can
+            // see exactly what identifier the token carries (no values — types only).
+            var claimTypes = User.Claims.Select(c => c.Type).Distinct().ToArray();
+            return StatusCode(401, new { error = "Could not resolve user from token", claimTypes });
+        }
         // Return the user even when pending/inactive so the portal can show a
-        // friendly "awaiting approval" state rather than a hard error. The portal
-        // gates functionality on status; data endpoints enforce it server-side too.
+        // friendly "awaiting approval" state rather than a hard error.
         return Ok(user);
     }
 }
