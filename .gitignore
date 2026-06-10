@@ -1,0 +1,18 @@
+# dependencies
+node_modules/
+portal/node_modules/
+
+# build output
+dist/
+portal/dist/
+
+# env & secrets — never commit
+.env
+.env.*
+*.local
+
+# editor / OS
+.vscode/
+.idea/
+.DS_Store
+*.log
