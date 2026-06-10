@@ -1410,10 +1410,48 @@ function NewProjectScreen({customer,onSave,onBack,role,onRoleChange}){
 // ════════════════════════════════════════════════════════════════════════════
 // SCREEN 5 — PROJECT WORKSPACE
 // ════════════════════════════════════════════════════════════════════════════
+
+// Non-destructive sync: given a project and the desired set of workstream codes,
+// returns updated {selected_workstreams, responses, prerequisites}. Existing
+// responses/prerequisites (and any answers/uploads on them) are PRESERVED; only
+// modules/questions/data-items that are missing get added. Questions are keyed
+// `${mod.code}_${qi}` so we can detect existing ones; data-items are matched by
+// mod_code+title to avoid duplicates on repeated syncs.
+function syncProjectModules(project, wsCodes){
+  const responses={...(project.responses||{})};
+  const prerequisites={...(project.prerequisites||{})};
+  const existingPrereqKeys=new Set(Object.values(prerequisites).map(p=>`${p.mod_code}|${p.title}`));
+
+  WORKSTREAMS.filter(ws=>wsCodes.includes(ws.code)).forEach(ws=>{
+    ws.modules.forEach(mod=>{
+      mod.questions.forEach((q,qi)=>{
+        const key=`${mod.code}_${qi}`;
+        if(!(key in responses)){
+          responses[key]={ws_code:ws.code,mod_code:mod.code,mod_label:mod.label,qi,dim:q.dim,question:q.q,response:"",is_covered:false,fit_gap:"",priority:"",notes:"",answered_by:""};
+        }
+      });
+      mod.dataItems.forEach(item=>{
+        const matchKey=`${mod.code}|${item.title}`;
+        if(!existingPrereqKeys.has(matchKey)){
+          const pid=genId();
+          prerequisites[pid]={id:pid,ws_code:ws.code,mod_code:mod.code,mod_label:mod.label,title:item.title,desc:item.desc,
+            targetDate:addWeeks(item.weekTarget),weekTarget:item.weekTarget,
+            status:"pending",escalation:"none",uploadedFiles:[],uploadedAt:null,uploadedBy:null,approved_by:null,notes:""};
+          existingPrereqKeys.add(matchKey);
+        }
+      });
+    });
+  });
+
+  return {selected_workstreams:[...wsCodes], responses, prerequisites};
+}
+
 const PROJ_TABS=["Overview","Questionnaire","Data Collection","Sessions","MOM","Escalations","Risks","Issues","Change Requests","Timeline"];
 
-function ProjectWorkspace({customer,project,onUpdate,onBack,onBackCustomer,role,onRoleChange,me}){
+function ProjectWorkspace({customer,project,onUpdate,onBack,onBackCustomer,role,onRoleChange,me,users}){
   const [tab,setTab]=useState("Overview");
+  const [showWsEdit,setShowWsEdit]=useState(false);
+  const canEditModules=role==="admin"||role==="consultant";
 
   const upd=useCallback((patch)=>onUpdate({...project,...patch}),[project,onUpdate]);
 
@@ -1431,6 +1469,7 @@ function ProjectWorkspace({customer,project,onUpdate,onBack,onBackCustomer,role,
         role={role} onRoleChange={onRoleChange}
         actions={
           <div style={{display:"flex",alignItems:"center",gap:8}}>
+            {canEditModules&&<button className="bo sm" onClick={()=>setShowWsEdit(true)} style={{display:"flex",alignItems:"center",gap:5}}><span>⚙</span>Workstreams</button>}
             {project.d365_project_id&&<span className="badge b-blue" style={{fontSize:10}}>⚡ D365 PO</span>}
             <span style={{fontSize:12,color:"rgba(255,255,255,.7)"}}>250 man-days · 27 weeks</span>
           </div>
@@ -1450,13 +1489,72 @@ function ProjectWorkspace({customer,project,onUpdate,onBack,onBackCustomer,role,
         {visibleTab==="Overview"       &&<ProjectOverview project={project} customer={customer}/>}
         {visibleTab==="Questionnaire"  &&<QuestionnaireTab project={project} onUpdate={upd} role={role}/>}
         {visibleTab==="Data Collection"&&<DataCollectionTab project={project} onUpdate={upd} role={role}/>}
-        {visibleTab==="Sessions"       &&<SessionsTab project={project} onUpdate={upd} role={role}/>}
+        {visibleTab==="Sessions"       &&<SessionsTab project={project} onUpdate={upd} role={role} users={users} customer={customer}/>}
         {visibleTab==="MOM"            &&<MOMTab project={project} onUpdate={upd} role={role}/>}
         {visibleTab==="Escalations"    &&<EscalationsTab project={project} onUpdate={upd} role={role}/>}
         {visibleTab==="Risks"          &&<RisksTab project={project} onUpdate={upd} role={role}/>}
         {visibleTab==="Issues"         &&<IssuesTab project={project} onUpdate={upd} role={role}/>}
         {visibleTab==="Change Requests"&&<ChangeRequestsTab project={project} onUpdate={upd} role={role} me={me}/>}
         {visibleTab==="Timeline"       &&<TimelineTab project={project}/>}
+      </div>
+
+      {showWsEdit&&<WorkstreamEditModal project={project} onClose={()=>setShowWsEdit(false)} onSync={(wsCodes)=>{
+        const synced=syncProjectModules(project,wsCodes);
+        onUpdate({...project,...synced});
+        setShowWsEdit(false);
+      }}/>}
+    </div>
+  );
+}
+
+// Modal: toggle which workstreams are in scope, then sync to pull in any new
+// modules (e.g. newly-added Manufacturing/Retail/AI) without losing existing answers.
+function WorkstreamEditModal({project,onClose,onSync}){
+  const [sel,setSel]=useState(new Set(project.selected_workstreams||[]));
+  const toggle=(code)=>{const n=new Set(sel); n.has(code)?n.delete(code):n.add(code); setSel(n);};
+
+  // Preview: how many modules/questions/data-items each workstream would contribute,
+  // and how many are NEW vs already in the project.
+  const existingQ=new Set(Object.keys(project.responses||{}));
+  const existingP=new Set(Object.values(project.prerequisites||{}).map(p=>`${p.mod_code}|${p.title}`));
+  const rows=WORKSTREAMS.map(ws=>{
+    let q=0,d=0,newQ=0,newD=0;
+    ws.modules.forEach(mod=>{
+      mod.questions.forEach((_,qi)=>{q++; if(!existingQ.has(`${mod.code}_${qi}`))newQ++;});
+      mod.dataItems.forEach(item=>{d++; if(!existingP.has(`${mod.code}|${item.title}`))newD++;});
+    });
+    return {ws,q,d,newQ,newD,on:sel.has(ws.code)};
+  });
+
+  return(
+    <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.45)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div onClick={e=>e.stopPropagation()} className="card" style={{maxWidth:640,width:"100%",maxHeight:"85vh",overflow:"auto",padding:0}}>
+        <div style={{background:NAVY,padding:"16px 22px",borderTopLeftRadius:12,borderTopRightRadius:12}}>
+          <div style={{color:"#fff",fontWeight:700,fontSize:16}}>Edit Workstreams &amp; Modules</div>
+          <div style={{color:"rgba(255,255,255,.7)",fontSize:12}}>Add workstreams to pull in new modules. Existing answers and uploads are kept.</div>
+        </div>
+        <div style={{padding:"18px 22px"}}>
+          {rows.map(({ws,q,d,newQ,newD,on})=>(
+            <div key={ws.code} onClick={()=>toggle(ws.code)}
+              style={{display:"flex",alignItems:"center",gap:12,padding:"12px 14px",marginBottom:10,borderRadius:10,cursor:"pointer",
+                border:`2px solid ${on?NAVY:"var(--border)"}`,background:on?NAVY+"08":"var(--white)"}}>
+              <div style={{width:22,height:22,borderRadius:6,border:`2px solid ${on?NAVY:"#cbd5e1"}`,background:on?NAVY:"transparent",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,flexShrink:0}}>{on?"✓":""}</div>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:600,fontSize:14,color:NAVY}}>{ws.label}</div>
+                <div style={{fontSize:11,color:"var(--text2)"}}>{ws.modules.length} modules · {q} questions · {d} data items
+                  {on&&(newQ+newD>0)&&<span style={{color:"var(--orange,#F05D2A)",fontWeight:600}}> · +{newQ} new questions, +{newD} new data items</span>}
+                </div>
+              </div>
+            </div>
+          ))}
+          <div style={{fontSize:12,color:"var(--text2)",marginTop:6,marginBottom:16}}>
+            Syncing adds any modules not yet in this project (including newly-added sub-modules and AI). It never removes existing questions or your answers — even if you untick a workstream, already-collected data is retained.
+          </div>
+          <div style={{display:"flex",gap:10,justifyContent:"flex-end"}}>
+            <button className="btn-ghost" onClick={onClose}>Cancel</button>
+            <button className="btn-primary" onClick={()=>onSync([...sel])}>Sync modules</button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -1887,7 +1985,84 @@ function DataCollectionTab({project,onUpdate,role}){
 }
 
 // ─── SESSIONS TAB ─────────────────────────────────────────────────────────────
-function SessionsTab({project,onUpdate,role}){
+// Searchable attendee picker: sources from system users (customer users for this
+// customer + Mazaya users), shows selected as removable chips, stores value as a
+// comma-separated email string (backward-compatible with Graph + existing sessions).
+// Also allows typing a free-text email to add an external attendee.
+function AttendeePicker({users,customer,value,onChange}){
+  const [q,setQ]=useState("");
+  const [open,setOpen]=useState(false);
+  const selected=(value||"").split(",").map(s=>s.trim()).filter(Boolean);
+
+  const all=Object.values(users||{}).filter(u=>u&&u.email&&u.status==="active");
+  const eligible=all.filter(u=>
+    (u.org==="mazaya") ||
+    (u.org==="customer" && customer && u.customer_id===customer.id)
+  );
+  const ql=q.toLowerCase();
+  const matches=eligible
+    .filter(u=>!selected.includes(u.email))
+    .filter(u=>!ql || u.name?.toLowerCase().includes(ql) || u.email.toLowerCase().includes(ql) || (u.job_title||"").toLowerCase().includes(ql));
+
+  const add=(email)=>{const e=email.trim(); if(!e||selected.includes(e))return; onChange([...selected,e].join(", ")); setQ("");};
+  const remove=(email)=>onChange(selected.filter(s=>s!==email).join(", "));
+  const isEmail=(s)=>/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s.trim());
+  const userByEmail=(email)=>eligible.find(u=>u.email===email);
+
+  return(
+    <div style={{position:"relative"}}>
+      {/* selected chips */}
+      {selected.length>0&&(
+        <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:6}}>
+          {selected.map(email=>{
+            const u=userByEmail(email);
+            return(
+              <span key={email} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"3px 8px",borderRadius:6,background:u?(u.org==="mazaya"?NAVY+"12":"#fef3e8"):"#f1f5f9",border:`1px solid ${u?(u.org==="mazaya"?NAVY+"30":"#fed7aa"):"#e2e8f0"}`,fontSize:12}}>
+                <span style={{fontWeight:600,color:u?(u.org==="mazaya"?NAVY:"#c2410c"):"var(--text2)"}}>{u?u.name:email}</span>
+                {u&&<span style={{fontSize:10,color:"var(--text3)"}}>{u.org==="mazaya"?"Mazaya":"Customer"}</span>}
+                <button type="button" onClick={()=>remove(email)} style={{border:"none",background:"none",cursor:"pointer",color:"var(--text3)",fontSize:14,lineHeight:1,padding:0}}>×</button>
+              </span>
+            );
+          })}
+        </div>
+      )}
+      {/* search input */}
+      <input
+        value={q}
+        onChange={e=>{setQ(e.target.value);setOpen(true);}}
+        onFocus={()=>setOpen(true)}
+        onBlur={()=>setTimeout(()=>setOpen(false),150)}
+        onKeyDown={e=>{if(e.key==="Enter"&&isEmail(q)){e.preventDefault();add(q);}}}
+        placeholder="Search project users or type an email…"
+      />
+      {/* dropdown */}
+      {open&&(matches.length>0||isEmail(q))&&(
+        <div style={{position:"absolute",top:"100%",left:0,right:0,zIndex:50,background:"var(--white)",border:"1px solid var(--border)",borderRadius:8,marginTop:4,maxHeight:220,overflow:"auto",boxShadow:"var(--sh2)"}}>
+          {matches.map(u=>(
+            <div key={u.id} onMouseDown={e=>{e.preventDefault();add(u.email);}}
+              style={{padding:"8px 12px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,borderBottom:"1px solid var(--bg)"}}
+              onMouseEnter={e=>e.currentTarget.style.background="var(--bg)"}
+              onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+              <div>
+                <div style={{fontSize:13,fontWeight:600,color:"var(--text)"}}>{u.name}</div>
+                <div style={{fontSize:11,color:"var(--text3)"}}>{u.email}{u.job_title?` · ${u.job_title}`:""}</div>
+              </div>
+              <span className="badge" style={{fontSize:10,background:u.org==="mazaya"?NAVY+"12":"#fef3e8",color:u.org==="mazaya"?NAVY:"#c2410c",border:"none"}}>{u.org==="mazaya"?"Mazaya":"Customer"}</span>
+            </div>
+          ))}
+          {isEmail(q)&&(
+            <div onMouseDown={e=>{e.preventDefault();add(q);}} style={{padding:"8px 12px",cursor:"pointer",fontSize:13,color:NAVY,fontWeight:600,borderTop:matches.length?"1px solid var(--border)":"none"}}>
+              + Add external: {q.trim()}
+            </div>
+          )}
+        </div>
+      )}
+      <div style={{fontSize:11,color:"var(--text3)",marginTop:4}}>Pick from project users, or type any email and press Enter to add an external attendee.</div>
+    </div>
+  );
+}
+
+function SessionsTab({project,onUpdate,role,users,customer}){
   const [showForm,setShowForm]=useState(false);
   const [ns,setNs]=useState({title:"",ws:"WSA",date:"",startTime:"09:00",duration:90,location:"Microsoft Teams",attendees:"",agenda:"",stage:"1",reminderMins:1440});
   const sessions=project.sessions||[];
@@ -1966,8 +2141,8 @@ function SessionsTab({project,onUpdate,role}){
               </select>
             </div>
             <div className="field" style={{gridColumn:"1/-1"}}>
-              <label>Attendees (comma-separated emails)</label>
-              <input value={ns.attendees} onChange={e=>setNs(p=>({...p,attendees:e.target.value}))} placeholder="pm@customer.com, finance@customer.com, consultant@mazaya.com"/>
+              <label>Attendees</label>
+              <AttendeePicker users={users} customer={customer} value={ns.attendees} onChange={v=>setNs(p=>({...p,attendees:v}))}/>
             </div>
             <div className="field" style={{gridColumn:"1/-1"}}>
               <label>Agenda (added to calendar invite body)</label>
@@ -2853,7 +3028,7 @@ export default function App(){
       </>}
 
       {screen==="workspace"&&cust&&proj&&(
-        <ProjectWorkspace customer={cust} project={proj} me={me} role={legRole} onRoleChange={()=>{}} onBack={()=>setScreen("projects")} onBackCustomer={()=>setScreen("customers")} onUpdate={async updated=>{const up={...cust,projects:{...cust.projects,[updated.id]:updated}};await updCust(up);}}/>
+        <ProjectWorkspace customer={cust} project={proj} me={me} users={users} role={legRole} onRoleChange={()=>{}} onBack={()=>setScreen("projects")} onBackCustomer={()=>setScreen("customers")} onUpdate={async updated=>{const up={...cust,projects:{...cust.projects,[updated.id]:updated}};await updCust(up);}}/>
       )}
     </div>
   );
