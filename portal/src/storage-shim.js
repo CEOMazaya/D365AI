@@ -30,6 +30,7 @@ const API_SCOPE = import.meta.env.VITE_API_SCOPE || "";
 const msalConfigured = Boolean(API_BASE && CLIENT_ID && TENANT_ID && API_SCOPE);
 
 let msal = null;
+let msalReady = null;
 if (msalConfigured) {
   msal = new PublicClientApplication({
     auth: {
@@ -39,14 +40,38 @@ if (msalConfigured) {
     },
     cache: { cacheLocation: "localStorage" },
   });
+  // Initialize once and handle any redirect response on load.
+  msalReady = (async () => {
+    await msal.initialize();
+    try {
+      const resp = await msal.handleRedirectPromise();
+      if (resp && resp.account) msal.setActiveAccount(resp.account);
+    } catch (e) { console.error("[msal] redirect handling failed", e); }
+    const existing = msal.getActiveAccount() || msal.getAllAccounts()[0];
+    if (existing) msal.setActiveAccount(existing);
+  })();
 }
+
+// Explicit interactive sign-in. Returns the account, or throws with a clear error.
+export async function signIn() {
+  if (!msal) throw new Error("MSAL not configured");
+  await msalReady;
+  let account = msal.getActiveAccount() || msal.getAllAccounts()[0];
+  if (!account) {
+    const res = await msal.loginPopup({ scopes: [API_SCOPE], prompt: "select_account" });
+    account = res.account;
+    msal.setActiveAccount(account);
+  }
+  return account;
+}
+if (typeof window !== "undefined") window.msalSignIn = signIn;
 
 async function getToken() {
   if (!msal) return null;
-  await msal.initialize();
+  await msalReady;
   let account = msal.getActiveAccount() || msal.getAllAccounts()[0];
   if (!account) {
-    const res = await msal.loginPopup({ scopes: [API_SCOPE] });
+    const res = await msal.loginPopup({ scopes: [API_SCOPE], prompt: "select_account" });
     account = res.account;
     msal.setActiveAccount(account);
   }
@@ -54,11 +79,8 @@ async function getToken() {
     const res = await msal.acquireTokenSilent({ scopes: [API_SCOPE], account });
     return res.accessToken;
   } catch (e) {
-    if (e instanceof InteractionRequiredAuthError) {
-      const res = await msal.acquireTokenPopup({ scopes: [API_SCOPE] });
-      return res.accessToken;
-    }
-    throw e;
+    const res = await msal.acquireTokenPopup({ scopes: [API_SCOPE], account });
+    return res.accessToken;
   }
 }
 
