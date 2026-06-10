@@ -67,6 +67,9 @@ const fmtD=(d)=>d?new Date(d).toLocaleDateString("en-GB",{day:"2-digit",month:"s
 const dLeft=(d)=>d?Math.ceil((new Date(d)-new Date())/86400000):null;
 const addWks=(w)=>{const d=new Date();d.setDate(d.getDate()+w*7);return d.toISOString().split("T")[0];};
 const today=()=>new Date().toISOString().split("T")[0];
+// Unique id generator for new records (customers, projects, risks, issues, CRs, MOMs).
+// Prefers crypto.randomUUID when available, falls back to a timestamp+random token.
+const genId=()=>(typeof crypto!=="undefined"&&crypto.randomUUID?crypto.randomUUID():`id_${Date.now().toString(36)}${Math.random().toString(36).slice(2,8)}`);
 const ini=(n)=>n.split(" ").slice(0,2).map(p=>p[0]?.toUpperCase()||"").join("");
 const avClr=(s)=>{const c=["#1D5166","#F05D2A","#7c3aed","#059669","#d97706","#2563eb"];let h=0;for(let i=0;i<s.length;i++)h=s.charCodeAt(i)+((h<<5)-h);return c[Math.abs(h)%c.length];};
 
@@ -900,16 +903,6 @@ function CustomerListScreen({customers,onSelect,onCreate,role,onRoleChange}){
   const list=Object.values(safeCustomers).filter(c=>c&&c.name&&c.name.toLowerCase().includes(search.toLowerCase())).sort((a,b)=>(b.created_at||0)-(a.created_at||0));
   return(
     <>
-      <TopNav
-        breadcrumbs={[{label:"All Customers"}]}
-        role={role} onRoleChange={onRoleChange}
-        actions={
-          (role==="consultant"||role==="admin")&&
-          <button className="btn-orange" onClick={onCreate} style={{display:"flex",alignItems:"center",gap:6,fontSize:13}}>
-            <span style={{fontSize:16,lineHeight:1}}>+</span> New Customer
-          </button>
-        }
-      />
       <div style={{maxWidth:1100,margin:"0 auto",padding:"32px 28px"}} className="fade">
         {/* Welcome hero with Mazaya robot */}
         <div className="hero">
@@ -1005,7 +998,6 @@ function NewCustomerScreen({onSave,onBack,role,onRoleChange}){
   };
   return(
     <>
-      <TopNav breadcrumbs={[{label:"All Customers",onClick:onBack},{label:"New Customer"}]} role={role} onRoleChange={onRoleChange} actions={null}/>
       <div style={{maxWidth:640,margin:"0 auto",padding:"32px 28px"}} className="fade">
         <div className="card">
           <h2 style={{fontWeight:700,fontSize:18,color:NAVY,marginBottom:4}}>Add New Customer</h2>
@@ -1055,12 +1047,6 @@ function ProjectListScreen({customer,onSelect,onCreate,onBack,role,onRoleChange}
   const projects=Object.values(customer.projects||{}).sort((a,b)=>b.created_at-a.created_at);
   return(
     <>
-      <TopNav
-        breadcrumbs={[{label:"All Customers",onClick:onBack},{label:customer.name}]}
-        role={role} onRoleChange={onRoleChange}
-        actions={(role==="consultant"||role==="admin")&&
-          <button className="btn-orange" onClick={onCreate} style={{fontSize:13,display:"flex",alignItems:"center",gap:6}}><span style={{fontSize:16}}>+</span>New Project</button>}
-      />
       <div style={{maxWidth:1000,margin:"0 auto",padding:"32px 28px"}} className="fade">
         <div style={{display:"flex",alignItems:"flex-start",gap:16,marginBottom:28}}>
           <div style={{width:52,height:52,borderRadius:12,background:NAVY,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
@@ -1165,7 +1151,6 @@ function NewProjectScreen({customer,onSave,onBack,role,onRoleChange}){
 
   return(
     <>
-      <TopNav breadcrumbs={[{label:"All Customers",onClick:()=>onBack("customers")},{label:customer.name,onClick:()=>onBack("projects")},{label:"New Project"}]} role={role} onRoleChange={onRoleChange} actions={null}/>
       <div style={{maxWidth:720,margin:"0 auto",padding:"32px 28px"}} className="fade">
         <div className="card">
           <h2 style={{fontWeight:700,fontSize:18,color:NAVY,marginBottom:4}}>New Implementation Project</h2>
