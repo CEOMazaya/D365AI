@@ -89,6 +89,28 @@ async function loadSes(){try{const r=await window.storage.get(SES_KEY);return r?
 async function saveSes(s){try{await window.storage.set(SES_KEY,JSON.stringify(s));}catch{}}
 async function clearSes(){try{await window.storage.delete(SES_KEY);}catch{}}
 
+// ─── Standard AI questions/data-items, repeated under every sub-module ──────
+const AI_QUESTIONS = [
+  {dim:"To-Be", q:"Which decisions or tasks in this area are the best candidates for AI assistance (automation, prediction, or recommendation)?"},
+  {dim:"As-Is", q:"What manual, repetitive, or high-volume processes here consume the most staff time today?"},
+  {dim:"Rules", q:"What data is available to train or ground an AI capability, and where does it live (D365 tables, documents, external systems)?"},
+  {dim:"Rules", q:"What accuracy, explainability, and human-in-the-loop approval requirements apply before AI output can be acted on?"},
+  {dim:"Rules", q:"Are there data-privacy, residency, or regulatory constraints (e.g. Kuwait data protection) that limit how AI may process this data?"},
+  {dim:"To-Be", q:"What would a successful AI outcome look like in measurable terms (time saved, error reduction, faster cycle)?"},
+  {dim:"Exception", q:"Where must a human always remain the final decision-maker, and what are the fallback rules when AI confidence is low?"},
+];
+const AI_DATA_ITEMS = [
+  {title:"AI use-case shortlist",desc:"Prioritised list of candidate AI use-cases for this area with expected benefit and data dependencies",weekTarget:4},
+  {title:"Representative data sample",desc:"Anonymised sample of the source data an AI capability would use, with field descriptions",weekTarget:5},
+  {title:"Approval & governance rules",desc:"Who reviews/approves AI output, confidence thresholds, and audit requirements",weekTarget:5},
+];
+// Builds a standard AI sub-module for a given parent area.
+const aiModule = (code,label,manDays=8,weekTarget=8)=>({
+  code, label, manDays, weekTarget, isAI:true,
+  questions:[...AI_QUESTIONS],
+  dataItems:[...AI_DATA_ITEMS],
+});
+
 const WORKSTREAMS = [
   {
     code:"WSA", label:"WS-A — Dynamics Finance", shortLabel:"Finance",
@@ -312,6 +334,37 @@ const WORKSTREAMS = [
           {title:"KPI definitions",desc:"Definition, calculation method, and target for each tracked KPI",weekTarget:7},
         ]
       },
+      { code:"MFG", label:"Manufacturing", manDays:16, weekTarget:6,
+        questions:[
+          {dim:"As-Is", q:"Describe your current production process — discrete, process, or lean manufacturing — and the systems used today."},
+          {dim:"Rules", q:"How are Bills of Materials (BOMs) and routes structured, versioned, and approved?"},
+          {dim:"Rules", q:"How is production costing handled — standard cost, actual cost, or a hybrid — and how are variances analysed?"},
+          {dim:"As-Is", q:"How is shop-floor capacity planned and scheduled today, and where are the main bottlenecks?"},
+          {dim:"To-Be", q:"What production KPIs and dashboards does operations management need (OEE, yield, scrap, on-time completion)?"},
+          {dim:"Exception", q:"How are rework, scrap, and quality holds handled and recorded against production orders?"},
+        ],
+        dataItems:[
+          {title:"BOM and routing master",desc:"All active BOMs and routes with versions, components, and operation times",weekTarget:6},
+          {title:"Work centre / resource list",desc:"All work centres and machines with capacity, calendars, and cost rates",weekTarget:6},
+          {title:"Production cost model",desc:"Standard cost setup or actual costing rules and current variance reports",weekTarget:7},
+        ]
+      },
+      { code:"RET", label:"Retail", manDays:16, weekTarget:6,
+        questions:[
+          {dim:"As-Is", q:"Describe your retail operation — store count, POS systems in use, and online/e-commerce channels."},
+          {dim:"Rules", q:"How is pricing, promotions, and discounting managed across channels and stores?"},
+          {dim:"Rules", q:"How is inventory replenishment handled between warehouse and stores?"},
+          {dim:"As-Is", q:"How are POS transactions reconciled to the GL and to payment settlements today?"},
+          {dim:"To-Be", q:"What omni-channel requirements exist — click-and-collect, online returns in store, unified loyalty?"},
+          {dim:"Exception", q:"How are returns, exchanges, and store-level write-offs processed and authorised?"},
+        ],
+        dataItems:[
+          {title:"Store and POS register list",desc:"All stores, registers, and current POS system details",weekTarget:6},
+          {title:"Product / SKU catalogue",desc:"Full retail product catalogue with pricing, barcodes, and categories",weekTarget:6},
+          {title:"Promotion and pricing rules",desc:"Current promotion types, discount rules, and loyalty programme structure",weekTarget:7},
+        ]
+      },
+      aiModule("FIN-AI","Finance AI",8,8),
     ]
   },
   {
@@ -347,6 +400,67 @@ const WORKSTREAMS = [
           {title:"ADP / current payroll GL journal sample",desc:"Last 3 payroll run GL journals with account mapping",weekTarget:6},
         ]
       },
+      { code:"HR", label:"HR", manDays:10, weekTarget:6,
+        questions:[
+          {dim:"As-Is", q:"Describe how hr is handled today — systems, owners, and key pain points."},
+          {dim:"Rules", q:"What policies, approval workflows, and rules govern hr?"},
+          {dim:"To-Be", q:"What outcomes and reports do you need from hr in D365/Solvait?"},
+          {dim:"Exception", q:"What edge cases or exceptions in hr must the system handle?"},
+        ],
+        dataItems:[
+          {title:"HR policy / configuration",desc:"Current policy documents and configuration governing hr",weekTarget:6},
+          {title:"HR current data extract",desc:"Representative current-state data for hr to validate the future design",weekTarget:6},
+        ]
+      },
+      { code:"HRPAY", label:"Payroll", manDays:12, weekTarget:6,
+        questions:[
+          {dim:"As-Is", q:"Describe how payroll is handled today — systems, owners, and key pain points."},
+          {dim:"Rules", q:"What policies, approval workflows, and rules govern payroll?"},
+          {dim:"To-Be", q:"What outcomes and reports do you need from payroll in D365/Solvait?"},
+          {dim:"Exception", q:"What edge cases or exceptions in payroll must the system handle?"},
+        ],
+        dataItems:[
+          {title:"Payroll policy / configuration",desc:"Current policy documents and configuration governing payroll",weekTarget:6},
+          {title:"Payroll current data extract",desc:"Representative current-state data for payroll to validate the future design",weekTarget:6},
+        ]
+      },
+      { code:"REC", label:"Recruitment", manDays:9, weekTarget:6,
+        questions:[
+          {dim:"As-Is", q:"Describe how recruitment is handled today — systems, owners, and key pain points."},
+          {dim:"Rules", q:"What policies, approval workflows, and rules govern recruitment?"},
+          {dim:"To-Be", q:"What outcomes and reports do you need from recruitment in D365/Solvait?"},
+          {dim:"Exception", q:"What edge cases or exceptions in recruitment must the system handle?"},
+        ],
+        dataItems:[
+          {title:"Recruitment policy / configuration",desc:"Current policy documents and configuration governing recruitment",weekTarget:6},
+          {title:"Recruitment current data extract",desc:"Representative current-state data for recruitment to validate the future design",weekTarget:6},
+        ]
+      },
+      { code:"ESS", label:"Self-Service", manDays:8, weekTarget:6,
+        questions:[
+          {dim:"As-Is", q:"Describe how employee self-service is handled today — systems, owners, and key pain points."},
+          {dim:"Rules", q:"What policies, approval workflows, and rules govern employee self-service?"},
+          {dim:"To-Be", q:"What outcomes and reports do you need from employee self-service in D365/Solvait?"},
+          {dim:"Exception", q:"What edge cases or exceptions in employee self-service must the system handle?"},
+        ],
+        dataItems:[
+          {title:"Employee Self-Service policy / configuration",desc:"Current policy documents and configuration governing employee self-service",weekTarget:6},
+          {title:"Employee Self-Service current data extract",desc:"Representative current-state data for employee self-service to validate the future design",weekTarget:6},
+        ]
+      },
+      { code:"APPR", label:"Appraisals", manDays:9, weekTarget:6,
+        questions:[
+          {dim:"As-Is", q:"Describe how appraisals & performance is handled today — systems, owners, and key pain points."},
+          {dim:"Rules", q:"What policies, approval workflows, and rules govern appraisals & performance?"},
+          {dim:"To-Be", q:"What outcomes and reports do you need from appraisals & performance in D365/Solvait?"},
+          {dim:"Exception", q:"What edge cases or exceptions in appraisals & performance must the system handle?"},
+        ],
+        dataItems:[
+          {title:"Appraisals & Performance policy / configuration",desc:"Current policy documents and configuration governing appraisals & performance",weekTarget:6},
+          {title:"Appraisals & Performance current data extract",desc:"Representative current-state data for appraisals & performance to validate the future design",weekTarget:6},
+        ]
+      },
+      aiModule("HRMS-AI","HRMS AI",8,8),
     ]
   },
   {
@@ -377,6 +491,67 @@ const WORKSTREAMS = [
           {title:"Historical service cases (if migrating)",desc:"Open cases to be migrated — case ID, customer, description, status",weekTarget:8},
         ]
       },
+      { code:"SALES", label:"Sales", manDays:10, weekTarget:7,
+        questions:[
+          {dim:"As-Is", q:"Describe how sales is handled today — systems, owners, and key pain points."},
+          {dim:"Rules", q:"What policies, approval workflows, and rules govern sales?"},
+          {dim:"To-Be", q:"What outcomes and reports do you need from sales in D365/Solvait?"},
+          {dim:"Exception", q:"What edge cases or exceptions in sales must the system handle?"},
+        ],
+        dataItems:[
+          {title:"Sales policy / configuration",desc:"Current policy documents and configuration governing sales",weekTarget:6},
+          {title:"Sales current data extract",desc:"Representative current-state data for sales to validate the future design",weekTarget:6},
+        ]
+      },
+      { code:"CCTR", label:"Contact Center", manDays:9, weekTarget:7,
+        questions:[
+          {dim:"As-Is", q:"Describe how contact center is handled today — systems, owners, and key pain points."},
+          {dim:"Rules", q:"What policies, approval workflows, and rules govern contact center?"},
+          {dim:"To-Be", q:"What outcomes and reports do you need from contact center in D365/Solvait?"},
+          {dim:"Exception", q:"What edge cases or exceptions in contact center must the system handle?"},
+        ],
+        dataItems:[
+          {title:"Contact Center policy / configuration",desc:"Current policy documents and configuration governing contact center",weekTarget:6},
+          {title:"Contact Center current data extract",desc:"Representative current-state data for contact center to validate the future design",weekTarget:6},
+        ]
+      },
+      { code:"CSVC", label:"Customer Service", manDays:10, weekTarget:7,
+        questions:[
+          {dim:"As-Is", q:"Describe how customer service is handled today — systems, owners, and key pain points."},
+          {dim:"Rules", q:"What policies, approval workflows, and rules govern customer service?"},
+          {dim:"To-Be", q:"What outcomes and reports do you need from customer service in D365/Solvait?"},
+          {dim:"Exception", q:"What edge cases or exceptions in customer service must the system handle?"},
+        ],
+        dataItems:[
+          {title:"Customer Service policy / configuration",desc:"Current policy documents and configuration governing customer service",weekTarget:6},
+          {title:"Customer Service current data extract",desc:"Representative current-state data for customer service to validate the future design",weekTarget:6},
+        ]
+      },
+      { code:"FSVC", label:"Field Services", manDays:10, weekTarget:7,
+        questions:[
+          {dim:"As-Is", q:"Describe how field services is handled today — systems, owners, and key pain points."},
+          {dim:"Rules", q:"What policies, approval workflows, and rules govern field services?"},
+          {dim:"To-Be", q:"What outcomes and reports do you need from field services in D365/Solvait?"},
+          {dim:"Exception", q:"What edge cases or exceptions in field services must the system handle?"},
+        ],
+        dataItems:[
+          {title:"Field Services policy / configuration",desc:"Current policy documents and configuration governing field services",weekTarget:6},
+          {title:"Field Services current data extract",desc:"Representative current-state data for field services to validate the future design",weekTarget:6},
+        ]
+      },
+      { code:"PROJOPS", label:"Project Operations", manDays:12, weekTarget:7,
+        questions:[
+          {dim:"As-Is", q:"Describe how project operations is handled today — systems, owners, and key pain points."},
+          {dim:"Rules", q:"What policies, approval workflows, and rules govern project operations?"},
+          {dim:"To-Be", q:"What outcomes and reports do you need from project operations in D365/Solvait?"},
+          {dim:"Exception", q:"What edge cases or exceptions in project operations must the system handle?"},
+        ],
+        dataItems:[
+          {title:"Project Operations policy / configuration",desc:"Current policy documents and configuration governing project operations",weekTarget:6},
+          {title:"Project Operations current data extract",desc:"Representative current-state data for project operations to validate the future design",weekTarget:6},
+        ]
+      },
+      aiModule("CRM-AI","CRM AI",8,8),
     ]
   },
 ];
@@ -1702,56 +1877,6 @@ function DataCollectionTab({project,onUpdate,role}){
                     )}
                   </div>
                 </div>
-                {s.status==="completed"&&(
-                  <div className="rec-wrap">
-                    {recEdit===s.id?(
-                      <div>
-                        <div className="fld">
-                          <label style={{fontSize:11,fontWeight:600,color:"var(--text2)",display:"block",marginBottom:4}}>Recording link (Teams / Stream / SharePoint)</label>
-                          <input value={recDraft.recordingUrl} onChange={e=>setRecDraft(p=>({...p,recordingUrl:e.target.value}))} placeholder="https://teams.microsoft.com/.../recording"/>
-                        </div>
-                        <div className="fld">
-                          <label style={{fontSize:11,fontWeight:600,color:"var(--text2)",display:"block",marginBottom:4}}>Transcript</label>
-                          <textarea value={recDraft.transcript} onChange={e=>setRecDraft(p=>({...p,transcript:e.target.value}))} placeholder={"Paste the meeting transcript here.\n\nFormat per line as  Speaker: text  to show speaker names."} style={{minHeight:120}}/>
-                        </div>
-                        <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
-                          <button className="btn-ghost" onClick={()=>setRecEdit(null)}>Cancel</button>
-                          <button className="btn-primary btn-sm" onClick={()=>saveRec(s.id)}>Save recording &amp; transcript</button>
-                        </div>
-                      </div>
-                    ):(
-                      <div>
-                        {s.recordingUrl?(
-                          <div className="rec-player">
-                            <div className="rec-play">▶</div>
-                            <div style={{flex:1,minWidth:0}}>
-                              <div style={{fontSize:12,fontWeight:600,color:NAVY}}>Session recording</div>
-                              <a href={s.recordingUrl} target="_blank" rel="noreferrer" style={{fontSize:11,color:"var(--blue)",wordBreak:"break-all"}}>{s.recordingUrl}</a>
-                            </div>
-                            {(role==="consultant"||role==="admin")&&<button className="btn-ghost btn-sm" onClick={()=>openRec(s)}>Edit</button>}
-                          </div>
-                        ):(
-                          (role==="consultant"||role==="admin")&&<button className="btn-ghost btn-sm" onClick={()=>openRec(s)} style={{marginBottom:s.transcript?8:0}}>+ Add recording &amp; transcript</button>
-                        )}
-                        {s.transcript&&(
-                          <div>
-                            <div style={{fontSize:11,fontWeight:600,color:"var(--text2)",margin:"4px 0 6px",display:"flex",alignItems:"center",gap:6}}>
-                              <span>📄 Transcript</span>
-                              {(role==="consultant"||role==="admin")&&!s.recordingUrl&&<button className="btn-ghost btn-sm" onClick={()=>openRec(s)} style={{padding:"2px 8px"}}>Edit</button>}
-                            </div>
-                            <div className="transcript-box">
-                              {s.transcript.split("\n").map((line,li)=>{
-                                const ci=line.indexOf(":");
-                                if(ci>0&&ci<40){return <div key={li} className="transcript-line"><span className="transcript-spk">{line.slice(0,ci+1)}</span>{line.slice(ci+1)}</div>;}
-                                return <div key={li} className="transcript-line">{line||"\u00A0"}</div>;
-                              })}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
             );
           })}
