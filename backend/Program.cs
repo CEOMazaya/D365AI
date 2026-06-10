@@ -13,10 +13,37 @@ builder.Services.AddDbContext<RgaDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
 
 // ── Entra ID (Azure AD) JWT bearer auth ──────────────────────────────────────
-// Validates tokens issued by the tenant(s) in appsettings "AzureAd". The portal
-// (a Static Web App / SPA) acquires a token via MSAL and sends it as a bearer.
+// Explicit JWT bearer validation (instead of AddMicrosoftIdentityWebApi, whose
+// default scope policy was rejecting otherwise-valid tokens before the action
+// ran). We validate: signature (via Entra's published keys), token lifetime,
+// and audience (our API). Issuer is validated loosely because the apps are
+// MULTITENANT — tokens legitimately come from many customer tenants, so we
+// accept any Microsoft Entra issuer rather than one fixed tenant. There is NO
+// scope gate at the middleware; [Authorize] only requires an authenticated
+// user, and AccessGuard performs the real per-customer authorization.
+var aadTenant = builder.Configuration["AzureAd:TenantId"] ?? "organizations";
+var aadAudience = builder.Configuration["AzureAd:Audience"]
+                  ?? $"api://{builder.Configuration["AzureAd:ClientId"]}";
+var aadClientId = builder.Configuration["AzureAd:ClientId"] ?? "";
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
+    .AddJwtBearer(options =>
+    {
+        // Keep original JWT claim names (preferred_username, upn, oid, …) instead
+        // of the legacy SOAP-style remapping, so claim lookups are predictable.
+        options.MapInboundClaims = false;
+        // Use the multitenant metadata endpoint so signing keys for any tenant resolve.
+        options.Authority = "https://login.microsoftonline.com/organizations/v2.0";
+        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        {
+            // Accept both the v2 (api://{clientId}) and v1 ({clientId}) audience forms.
+            ValidateAudience = true,
+            ValidAudiences = new[] { aadAudience, aadClientId, $"api://{aadClientId}" },
+            // Multitenant: accept any Entra issuer (signature + audience are the real gate).
+            ValidateIssuer = false,
+            ValidateIssuerSigningKey = true,
+            ValidateLifetime = true,
+        };
+    });
 
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<CurrentUserService>();
