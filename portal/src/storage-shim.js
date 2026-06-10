@@ -76,15 +76,55 @@ async function api(path, options = {}) {
   return res;
 }
 
-// Storage API backed by the backend's /api/state/{key} document store.
+// Storage API backed by the backend. Two keys are served from the RELATIONAL
+// tables via scoped endpoints (per-customer isolation enforced server-side):
+//   mz_usr_v1 → /api/portal/users      (users table)
+//   mz_db_v1  → /api/portal/db         (customers + projects, scoped)
+// Everything else (session pointer, o365 config) uses the generic document store.
+const PORTAL_KEYS = { mz_usr_v1: "/api/portal/users", mz_db_v1: "/api/portal/db" };
+
+// Fetch the signed-in user resolved by the backend against the users table.
+// Returns the portal user object, or null if unauthenticated.
+export async function getMe() {
+  try {
+    const res = await api("/api/auth/me");
+    if (res.status === 404 || res.status === 401) return null;
+    const u = await res.json();
+    if (!u || !u.email) return null;
+    // Normalise to the portal's user shape (snake_case ids as strings).
+    return {
+      id: u.id, name: u.name, email: u.email,
+      user_type: u.userType ?? u.user_type,
+      org: u.org,
+      customer_id: u.customerId ?? u.customer_id ?? null,
+      workstream_scope: u.workstreamScope ?? u.workstream_scope ?? [],
+      status: u.status,
+      job_title: u.jobTitle ?? u.job_title ?? "",
+    };
+  } catch { return null; }
+}
+// Expose for the portal (which imports from this module).
+if (typeof window !== "undefined") window.getMe = getMe;
+
 const apiStorage = {
   async get(key) {
+    // Relational keys → scoped endpoints, returned in the portal's value shape.
+    if (PORTAL_KEYS[key]) {
+      const res = await api(PORTAL_KEYS[key]);
+      if (res.status === 404) return null;
+      const data = await res.json();
+      return { key, value: JSON.stringify(data) };
+    }
     const res = await api(`/api/state/${encodeURIComponent(key)}`);
     if (res.status === 404) return null;
     const data = await res.json();
     return data && data.value != null ? { key, value: data.value } : null;
   },
   async set(key, value) {
+    if (PORTAL_KEYS[key]) {
+      await api(PORTAL_KEYS[key], { method: "PUT", body: value });
+      return { key, value };
+    }
     await api(`/api/state/${encodeURIComponent(key)}`, {
       method: "PUT",
       body: JSON.stringify({ value }),

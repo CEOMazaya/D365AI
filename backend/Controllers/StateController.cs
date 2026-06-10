@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Mazaya.Rga.Api.Auth;
-using Mazaya.Rga.Api.Auth;
 using Mazaya.Rga.Api.Data;
 using Mazaya.Rga.Api.Models;
 

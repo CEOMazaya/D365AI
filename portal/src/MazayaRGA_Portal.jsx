@@ -555,10 +555,36 @@ function LoginScreen({onLogin,users}){
       alert("Microsoft 365 sign-in isn't connected yet.\n\nThis portal needs its backend and Entra ID configuration before users can sign in. Contact your Mazaya administrator.");
       return;
     }
+    // Configured mode: trigger MSAL sign-in, then resolve the user from the
+    // backend (which matches the Entra token against the relational users table).
+    // No manual email entry — identity comes from the verified token.
     setPhase("flow"); setStep(0);
     let s=0;
-    const nxt=()=>{s++;setStep(s);if(s<steps.length)setTimeout(nxt,700);else setPhase("email");};
-    setTimeout(nxt,700);
+    const tick=()=>{s++;setStep(Math.min(s,steps.length-1));};
+    const timer=setInterval(tick,500);
+    (async()=>{
+      try{
+        const me = window.getMe ? await window.getMe() : null;
+        clearInterval(timer);
+        if(!me){
+          alert("Sign-in could not be completed. Please try again or contact your Mazaya administrator.");
+          setPhase("landing"); return;
+        }
+        if(me.status==="pending"){
+          alert("Your account is awaiting approval.\n\nA Mazaya administrator needs to assign your account to a customer before you can access the portal.");
+          setPhase("landing"); return;
+        }
+        if(me.status!=="active"){
+          alert("Your account is inactive. Please contact your Mazaya administrator.");
+          setPhase("landing"); return;
+        }
+        onLogin(me);
+      }catch(e){
+        clearInterval(timer);
+        alert("Sign-in failed. Please try again or contact your Mazaya administrator.");
+        setPhase("landing");
+      }
+    })();
   };
 
   const signIn=()=>{

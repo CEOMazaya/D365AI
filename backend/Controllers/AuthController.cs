@@ -19,7 +19,9 @@ public class AuthController : ControllerBase
     {
         var user = await _current.ResolveAsync(User);
         if (user == null) return Unauthorized();
-        if (user.Status != "active") return StatusCode(403, new { error = "Account inactive" });
+        // Return the user even when pending/inactive so the portal can show a
+        // friendly "awaiting approval" state rather than a hard error. The portal
+        // gates functionality on status; data endpoints enforce it server-side too.
         return Ok(user);
     }
 }
