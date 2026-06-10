@@ -895,7 +895,8 @@ function AuditLog({users}){
 
 function CustomerListScreen({customers,onSelect,onCreate,role,onRoleChange}){
   const [search,setSearch]=useState("");
-  const list=Object.values(customers).filter(c=>c.name.toLowerCase().includes(search.toLowerCase())).sort((a,b)=>b.created_at-a.created_at);
+  const safeCustomers=customers||{};
+  const list=Object.values(safeCustomers).filter(c=>c&&c.name&&c.name.toLowerCase().includes(search.toLowerCase())).sort((a,b)=>(b.created_at||0)-(a.created_at||0));
   return(
     <>
       <TopNav
@@ -930,9 +931,9 @@ function CustomerListScreen({customers,onSelect,onCreate,role,onRoleChange}){
         {/* Summary row */}
         <div className="grid4" style={{marginBottom:28}}>
           <Stat label="Total Customers" value={list.length} color={NAVY}/>
-          <Stat label="Active Projects" value={Object.values(customers).reduce((s,c)=>s+Object.keys(c.projects||{}).length,0)} color={ORANGE}/>
-          <Stat label="Overdue Items"   value={Object.values(customers).reduce((s,c)=>s+Object.values(c.projects||{}).reduce((ss,p)=>ss+Object.values(p.prerequisites||{}).filter(x=>x.status!=="approved"&&daysLeft(x.targetDate)<0).length,0),0)} color="var(--red)"/>
-          <Stat label="This Week Sessions" value={Object.values(customers).reduce((s,c)=>s+Object.values(c.projects||{}).reduce((ss,p)=>ss+(p.sessions||[]).filter(x=>x.date===today()).length,0),0)} color="var(--green)"/>
+          <Stat label="Active Projects" value={Object.values(safeCustomers).reduce((s,c)=>s+Object.keys(c.projects||{}).length,0)} color={ORANGE}/>
+          <Stat label="Overdue Items"   value={Object.values(safeCustomers).reduce((s,c)=>s+Object.values(c.projects||{}).reduce((ss,p)=>ss+Object.values(p.prerequisites||{}).filter(x=>x.status!=="approved"&&daysLeft(x.targetDate)<0).length,0),0)} color="var(--red)"/>
+          <Stat label="This Week Sessions" value={Object.values(safeCustomers).reduce((s,c)=>s+Object.values(c.projects||{}).reduce((ss,p)=>ss+(p.sessions||[]).filter(x=>x.date===today()).length,0),0)} color="var(--green)"/>
         </div>
 
         {/* Search */}
@@ -2678,7 +2679,16 @@ export default function App(){
   const persist=useCallback(async(next)=>{setDb(next);await saveDB(next);},[]);
   const persistU=useCallback(async(next)=>{setUsers(next);await saveUsers(next);},[]);
 
-  const login=useCallback(async(user)=>{setMe(user);await saveSes({uid:user.id,at:Date.now()});
+  const login=useCallback(async(user)=>{
+    setMe(user);
+    await saveSes({uid:user.id,at:Date.now()});
+    // Now that we're authenticated, (re)load data with the bearer token — the
+    // pre-login boot load ran without a token and returned empty/401.
+    try{
+      const [d,u]=await Promise.all([loadDB(),loadUsers()]);
+      if(d) setDb(d);
+      if(u) setUsers(u);
+    }catch(e){ console.error("post-login data load failed",e); }
     if(user.org==="customer"&&user.customer_id){setCustId(user.customer_id);setScreen("projects");}
     else setScreen("customers");
   },[]);
