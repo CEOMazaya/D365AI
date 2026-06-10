@@ -70,6 +70,12 @@ const today=()=>new Date().toISOString().split("T")[0];
 // Unique id generator for new records (customers, projects, risks, issues, CRs, MOMs).
 // Prefers crypto.randomUUID when available, falls back to a timestamp+random token.
 const genId=()=>(typeof crypto!=="undefined"&&crypto.randomUUID?crypto.randomUUID():`id_${Date.now().toString(36)}${Math.random().toString(36).slice(2,8)}`);
+// Returns an ISO date (YYYY-MM-DD) n weeks from today — used for prerequisite target dates.
+const addWeeks=(n)=>{const d=new Date();d.setDate(d.getDate()+(Number(n)||0)*7);return d.toISOString().split("T")[0];};
+// Whole days from today until the given date (negative = overdue). null if no date.
+const daysLeft=(date)=>{if(!date)return null;const d=new Date(date);if(isNaN(d))return null;const ms=d.setHours(0,0,0,0)-new Date().setHours(0,0,0,0);return Math.round(ms/86400000);};
+// Human-friendly date formatter, e.g. "01 Jun 2026". Falls back to the raw value.
+const fmtDate=(date)=>{if(!date)return "";const d=new Date(date);if(isNaN(d))return String(date);return d.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});};
 const ini=(n)=>n.split(" ").slice(0,2).map(p=>p[0]?.toUpperCase()||"").join("");
 const avClr=(s)=>{const c=["#1D5166","#F05D2A","#7c3aed","#059669","#d97706","#2563eb"];let h=0;for(let i=0;i<s.length;i++)h=s.charCodeAt(i)+((h<<5)-h);return c[Math.abs(h)%c.length];};
 
