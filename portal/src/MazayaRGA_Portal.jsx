@@ -334,37 +334,186 @@ const WORKSTREAMS = [
           {title:"KPI definitions",desc:"Definition, calculation method, and target for each tracked KPI",weekTarget:7},
         ]
       },
-      { code:"MFG", label:"Manufacturing", manDays:16, weekTarget:6,
+
+
+      // ─── MANUFACTURING (D365 SCM — Production Control) ──────────────────────────
+      { code:"MFG", label:"Manufacturing", manDays:22, weekTarget:7,
         questions:[
-          {dim:"As-Is", q:"Describe your current production process — discrete, process, or lean manufacturing — and the systems used today."},
-          {dim:"Rules", q:"How are Bills of Materials (BOMs) and routes structured, versioned, and approved?"},
-          {dim:"Rules", q:"How is production costing handled — standard cost, actual cost, or a hybrid — and how are variances analysed?"},
-          {dim:"As-Is", q:"How is shop-floor capacity planned and scheduled today, and where are the main bottlenecks?"},
-          {dim:"To-Be", q:"What production KPIs and dashboards does operations management need (OEE, yield, scrap, on-time completion)?"},
-          {dim:"Exception", q:"How are rework, scrap, and quality holds handled and recorded against production orders?"},
+          {dim:"As-Is", q:"What production methodology do you operate — discrete, process (formula/batch), lean (kanban), or a mix? Describe the main product families and how each is made."},
+          {dim:"As-Is", q:"Walk us through the order-to-production flow today: how does demand (sales order, forecast, min/max) trigger a production or batch order, and who releases it to the shop floor?"},
+          {dim:"Rules", q:"How are Bills of Materials structured — single vs multi-level, phantom BOMs, BOM versions, and effective dates? Who approves BOM changes and how are revisions controlled?"},
+          {dim:"Rules", q:"How are routes and operations defined — work/resource centres, setup vs run time, queue/move times — and is finite or infinite capacity scheduling required?"},
+          {dim:"Rules", q:"What is your production costing approach — standard cost with variances, or actual/weighted-average? How often is the costing version (cost roll-up) updated and who signs it off?"},
+          {dim:"Rules", q:"Do you use master planning / MRP? What planning parameters apply (lead times, lot sizing, safety stock, coverage groups) and how far out is the planning horizon?"},
+          {dim:"As-Is", q:"How is shop-floor execution captured today — job/route card feedback, time & attendance against operations, scrap and quantity reporting? Manual or via terminals/MES?"},
+          {dim:"Rules", q:"Do you perform subcontracting / external operations? How are subcontract POs, service items, and material provided to vendors handled and costed?"},
+          {dim:"Rules", q:"Is batch/lot or serial control required, including shelf-life, expiry, potency, or batch attributes? Are there full forward/backward traceability requirements?"},
+          {dim:"Rules", q:"What quality processes apply — incoming inspection, in-process checks, quality orders, non-conformance, and quarantine/blocking of stock?"},
+          {dim:"To-Be", q:"What manufacturing KPIs and dashboards does operations need — OEE, yield, scrap rate, schedule adherence, WIP value, on-time completion?"},
+          {dim:"Exception", q:"How are rework, scrap, by-products/co-products, and yield losses recorded and costed against the production/batch order?"},
+          {dim:"Exception", q:"How are engineering change orders, BOM/route obsolescence, and product version cut-overs managed without disrupting open production?"},
+          {dim:"Rules", q:"Are there GCC-specific requirements — industrial licensing, local-content/in-country-value reporting (e.g. UAE ICV, KSA local content), or customs duty drawback on manufactured exports?"},
         ],
         dataItems:[
-          {title:"BOM and routing master",desc:"All active BOMs and routes with versions, components, and operation times",weekTarget:6},
-          {title:"Work centre / resource list",desc:"All work centres and machines with capacity, calendars, and cost rates",weekTarget:6},
-          {title:"Production cost model",desc:"Standard cost setup or actual costing rules and current variance reports",weekTarget:7},
+          {title:"Product and BOM master",desc:"All manufactured items with multi-level BOMs, versions, components, quantities, and scrap percentages",weekTarget:5},
+          {title:"Routes and work centres",desc:"All routes, operations, work/resource centres with capacity, calendars, and cost categories/rates",weekTarget:5},
+          {title:"Costing version / standard cost setup",desc:"Current standard cost roll-up or actual costing rules, overhead/indirect cost calculation, and recent variance reports",weekTarget:6},
+          {title:"Master planning parameters",desc:"Coverage groups, lead times, lot sizing, safety stock, and the planning calendar/horizon",weekTarget:6},
+          {title:"Quality and traceability requirements",desc:"Inspection plans, quality order triggers, batch/serial rules, shelf-life and traceability obligations",weekTarget:6},
         ]
       },
-      { code:"RET", label:"Retail", manDays:16, weekTarget:6,
+
+      // ─── RETAIL / COMMERCE (D365 Commerce) ──────────────────────────────────────
+      { code:"RET", label:"Retail & Commerce", manDays:22, weekTarget:7,
         questions:[
-          {dim:"As-Is", q:"Describe your retail operation — store count, POS systems in use, and online/e-commerce channels."},
-          {dim:"Rules", q:"How is pricing, promotions, and discounting managed across channels and stores?"},
-          {dim:"Rules", q:"How is inventory replenishment handled between warehouse and stores?"},
-          {dim:"As-Is", q:"How are POS transactions reconciled to the GL and to payment settlements today?"},
-          {dim:"To-Be", q:"What omni-channel requirements exist — click-and-collect, online returns in store, unified loyalty?"},
-          {dim:"Exception", q:"How are returns, exchanges, and store-level write-offs processed and authorised?"},
+          {dim:"As-Is", q:"Describe your retail footprint — number of stores, terminals per store, e-commerce channel(s), and any call-center sales. Which POS/e-com systems are in use today?"},
+          {dim:"Rules", q:"How should the channel hierarchy and store setup be structured — legal entities, operating units, registers, and shifts? What are the store opening/closing and shift-reconciliation rules?"},
+          {dim:"Rules", q:"What payment methods and connectors are required per channel — cards (KNET, mada, regional gateways), cash, wallets, gift cards, store credit — and how are tenders reconciled?"},
+          {dim:"Rules", q:"How is pricing managed — base price, price groups, trade agreements, channel-specific pricing — and what promotions/discounts apply (mix-and-match, threshold, quantity, coupons)?"},
+          {dim:"Rules", q:"What are the inventory and replenishment rules across DC and stores — buyer's push, replenishment rules, cross-docking, and store-to-store transfers?"},
+          {dim:"As-Is", q:"How are retail transactions posted to finance today — statement/posting frequency, how sales, tax, tenders, and rounding are recognised in the GL?"},
+          {dim:"Rules", q:"What omni-channel capabilities are needed — click-and-collect (BOPIS), ship-from-store, endless aisle, online return in store, unified customer/loyalty across channels?"},
+          {dim:"Rules", q:"Describe the loyalty programme — earning/redemption rules, tiers, points expiry — and any gift-card issuance/redemption requirements."},
+          {dim:"Rules", q:"What hardware and peripheral setup is needed at the till — barcode scanners, receipt/fiscal printers, cash drawers, payment terminals, scales — and is offline (resilient) mode required?"},
+          {dim:"To-Be", q:"What retail analytics does management need — sales by store/channel/category, basket analysis, margin, stock turn, shrinkage?"},
+          {dim:"Exception", q:"How are returns, exchanges, price overrides, voids, and no-sale events authorised and audited at the POS?"},
+          {dim:"Exception", q:"How are store-level inventory adjustments, cycle counts, damages, and shrinkage handled and reconciled?"},
+          {dim:"Rules", q:"What GCC fiscal/e-invoicing requirements apply at retail — simplified tax invoices, ZATCA (KSA) e-invoicing/QR at POS, VAT on receipts (UAE/KSA/Bahrain/Oman), Arabic receipt printing?"},
         ],
         dataItems:[
-          {title:"Store and POS register list",desc:"All stores, registers, and current POS system details",weekTarget:6},
-          {title:"Product / SKU catalogue",desc:"Full retail product catalogue with pricing, barcodes, and categories",weekTarget:6},
-          {title:"Promotion and pricing rules",desc:"Current promotion types, discount rules, and loyalty programme structure",weekTarget:7},
+          {title:"Store and terminal register",desc:"All stores, registers, shifts, staff/operators, and current POS system details",weekTarget:6},
+          {title:"Retail product catalogue",desc:"Full assortment with barcodes, categories, variants, base prices, and tax groups",weekTarget:6},
+          {title:"Pricing, promotion and loyalty rules",desc:"Price groups, trade agreements, promotion types, loyalty earn/redeem structure, gift-card rules",weekTarget:6},
+          {title:"Payment connector and tender configuration",desc:"Card/wallet gateways per channel, tender types, reconciliation and settlement process",weekTarget:7},
+          {title:"Retail posting / statement rules",desc:"Statement frequency, GL posting profiles, rounding, and tender reconciliation rules",weekTarget:7},
         ]
       },
-      aiModule("FIN-AI","Finance AI",8,8),
+
+      // ─── TAX (GCC VAT / WHT / e-invoicing) ──────────────────────────────────────
+      { code:"TAX", label:"Tax & E-Invoicing (GCC)", manDays:12, weekTarget:5,
+        questions:[
+          {dim:"As-Is", q:"In which GCC countries do you have a tax presence, and what is the VAT status in each — KSA (15%), UAE (5%), Bahrain (10%), Oman (5%), Qatar (no VAT yet), Kuwait (no VAT yet)? Note any registrations and group VAT."},
+          {dim:"Rules", q:"What tax codes, rates, and groups are required — standard, zero-rated, exempt, out-of-scope, reverse charge (imports/services), and how do item and customer/vendor tax groups combine?"},
+          {dim:"Rules", q:"What are the e-invoicing obligations and timelines per country — KSA ZATCA Fatoorah (Phase 2 integration, XML/PDF-A3, QR, cryptographic stamp), UAE e-invoicing roadmap — and what clearance/reporting model applies?"},
+          {dim:"Rules", q:"Is withholding tax applicable (e.g. on cross-border services/royalties in KSA), and how should WHT codes, rates, certificates, and vendor reporting be configured?"},
+          {dim:"Rules", q:"How are VAT returns prepared and filed today, and what are the filing frequencies, box mappings, and audit-file/SAF-T-style requirements per authority?"},
+          {dim:"As-Is", q:"How do you handle import VAT/customs at the border, reverse-charge mechanism, and recoverability of input VAT today?"},
+          {dim:"To-Be", q:"What tax reporting and reconciliation outputs are required — VAT return packs, tax reconciliation to GL, and audit-ready transaction listings?"},
+          {dim:"Exception", q:"How are tax adjustments, credit notes, bad-debt relief, partial exemption, and intra-GCC transactions handled?"},
+          {dim:"Exception", q:"How are free-zone, designated-zone (UAE), or special economic zone transactions treated for VAT?"},
+        ],
+        dataItems:[
+          {title:"Tax registration matrix",desc:"VAT/WHT registration numbers, status, and filing frequency per GCC country and legal entity",weekTarget:3},
+          {title:"Tax code and rate schedule",desc:"All tax codes, rates, groups, and item/party tax group combinations currently in use",weekTarget:3},
+          {title:"E-invoicing requirements pack",desc:"Per-country e-invoicing specs (ZATCA XML/QR, clearance model), sample compliant invoices",weekTarget:4},
+          {title:"VAT return mapping",desc:"Current VAT return templates and box-to-GL mappings per authority",weekTarget:4},
+        ]
+      },
+
+      // ─── CREDIT & COLLECTIONS ───────────────────────────────────────────────────
+      { code:"CC", label:"Credit & Collections", manDays:9, weekTarget:5,
+        questions:[
+          {dim:"As-Is", q:"How is customer credit managed today — who sets credit limits, on what basis, and is credit checked at order entry, picking, or invoicing?"},
+          {dim:"Rules", q:"What credit limit and credit-hold rules are required — limit by customer/group, blocking rules, exclusions, and the release/approval hierarchy?"},
+          {dim:"Rules", q:"What is the collections process — aging buckets, collection letters/dunning, interest/penalty charges, and the activity/follow-up cadence by collections agent?"},
+          {dim:"Rules", q:"How are write-offs, bad-debt provisions, and disputed invoices handled and approved?"},
+          {dim:"As-Is", q:"How are customer statements and reminders issued today, and in what languages (Arabic/English)?"},
+          {dim:"To-Be", q:"What collections dashboards and KPIs do you need — DSO, aging, collector productivity, promise-to-pay tracking?"},
+          {dim:"Exception", q:"How are payment plans, partial settlements, and customer credit appeals handled?"},
+        ],
+        dataItems:[
+          {title:"Customer credit limit list",desc:"All customers with current credit limits, terms, and any holds/exclusions",weekTarget:4},
+          {title:"Aging and collections policy",desc:"Aging bucket definitions, dunning levels, interest rules, and write-off authority",weekTarget:4},
+          {title:"Open AR aging report",desc:"Current open receivables by customer, age, and dispute status",weekTarget:4},
+        ]
+      },
+
+      // ─── EXPENSE MANAGEMENT ─────────────────────────────────────────────────────
+      { code:"EXP", label:"Expense Management", manDays:9, weekTarget:5,
+        questions:[
+          {dim:"As-Is", q:"How are employee expenses and travel claims captured and reimbursed today — paper, spreadsheet, or a tool — and what is the volume per month?"},
+          {dim:"Rules", q:"What expense categories and policies apply — per-diem rates by country/grade, mileage, spending limits, and required receipts/justification thresholds?"},
+          {dim:"Rules", q:"What is the approval workflow for expense reports and travel requisitions — by amount, cost centre, project, and management hierarchy?"},
+          {dim:"Rules", q:"Are corporate cards used? How are card transactions imported, matched to expense lines, and reconciled?"},
+          {dim:"Rules", q:"How should expenses be allocated and posted — to cost centres, projects, or intercompany — and how is recoverable VAT on expenses handled across GCC?"},
+          {dim:"To-Be", q:"What mobile capture and self-service experience do employees expect (receipt photo, OCR, mobile approval)?"},
+          {dim:"Exception", q:"How are policy violations, over-limit claims, cash advances, and advance settlements handled?"},
+        ],
+        dataItems:[
+          {title:"Expense policy and per-diem rates",desc:"All expense categories, per-diem/mileage rates by country and grade, limits, and receipt rules",weekTarget:4},
+          {title:"Approval matrix (expenses)",desc:"Approval thresholds and hierarchy for expense reports and travel requisitions",weekTarget:4},
+          {title:"Corporate card feed sample",desc:"Sample card transaction file/format and current reconciliation process",weekTarget:5},
+        ]
+      },
+
+      // ─── COST ACCOUNTING ────────────────────────────────────────────────────────
+      { code:"COST", label:"Cost Accounting", manDays:11, weekTarget:6,
+        questions:[
+          {dim:"As-Is", q:"How is cost/managerial accounting done today versus financial accounting — separate cost centres, internal allocations, and management reporting structure?"},
+          {dim:"Rules", q:"What cost objects and cost element dimensions are needed — cost centres, departments, products, projects — and how do they map from the GL?"},
+          {dim:"Rules", q:"What allocation rules are required — overhead absorption, shared-service recharges, allocation bases (headcount, sqm, usage), and reciprocal allocations?"},
+          {dim:"Rules", q:"Do you need statistical/non-financial measures (e.g. machine hours, headcount) as allocation drivers, and where do they come from?"},
+          {dim:"To-Be", q:"What management/profitability reporting is required — by cost centre, product line, channel, or business unit — and at what frequency?"},
+          {dim:"Exception", q:"How are budget-vs-actual cost variances analysed and explained at cost-centre level?"},
+        ],
+        dataItems:[
+          {title:"Cost centre and dimension hierarchy",desc:"Full cost centre structure, cost objects, and mapping from GL financial dimensions",weekTarget:5},
+          {title:"Allocation rules and drivers",desc:"All overhead/recharge allocations, bases, and statistical drivers in use",weekTarget:5},
+          {title:"Management reporting samples",desc:"Current cost-centre and profitability reports management relies on",weekTarget:6},
+        ]
+      },
+
+      // ─── CONSOLIDATIONS & ELIMINATIONS ──────────────────────────────────────────
+      { code:"CONS", label:"Consolidations & Eliminations", manDays:10, weekTarget:7,
+        questions:[
+          {dim:"As-Is", q:"What is the group/legal-entity structure requiring consolidation, and how are consolidated financials produced today (tool, spreadsheet, frequency)?"},
+          {dim:"Rules", q:"What consolidation method and currency translation rules apply — reporting currency, FX rate types (average/closing), and CTA (currency translation adjustment) treatment?"},
+          {dim:"Rules", q:"What intercompany eliminations are required — IC sales/purchases, IC profit in inventory, IC loans/balances — and what are the elimination rules and accounts?"},
+          {dim:"Rules", q:"Are there minority/non-controlling interests, partial ownership, or equity-method investments to handle?"},
+          {dim:"To-Be", q:"What consolidated reporting outputs and group-level disclosures are required (IFRS), and at what close cadence?"},
+          {dim:"Exception", q:"How are differing charts of accounts, fiscal calendars, or local-GAAP-to-IFRS adjustments across entities reconciled in consolidation?"},
+        ],
+        dataItems:[
+          {title:"Group/legal-entity structure",desc:"All entities, ownership percentages, reporting currencies, and consolidation scope",weekTarget:6},
+          {title:"Elimination rules and accounts",desc:"Intercompany elimination logic, accounts, and any IC profit-in-stock rules",weekTarget:6},
+          {title:"Current consolidation workbook",desc:"Latest consolidated statements and the worksheet/process used to produce them",weekTarget:7},
+        ]
+      },
+
+      // ─── INTERCOMPANY ───────────────────────────────────────────────────────────
+      { code:"IC", label:"Intercompany Accounting", manDays:9, weekTarget:5,
+        questions:[
+          {dim:"As-Is", q:"What intercompany transactions occur today — IC sales/purchases, shared costs, IC services, loans — and how are they recorded and reconciled between entities?"},
+          {dim:"Rules", q:"Do you need automated intercompany trade (IC sales order ↔ purchase order chains), and what are the IC pricing/transfer-pricing rules?"},
+          {dim:"Rules", q:"How should IC due-to/due-from accounts and automated IC journal posting be configured across legal entities?"},
+          {dim:"Rules", q:"What transfer-pricing and documentation requirements apply across GCC jurisdictions, including any markups and arm's-length policies?"},
+          {dim:"To-Be", q:"What IC reconciliation and settlement reporting is required to keep inter-entity balances aligned at period close?"},
+          {dim:"Exception", q:"How are IC mismatches, timing differences, and FX on intercompany balances resolved?"},
+        ],
+        dataItems:[
+          {title:"Intercompany relationship matrix",desc:"All trading entity pairs, IC account mappings, and current IC transaction types",weekTarget:4},
+          {title:"Transfer pricing policy",desc:"IC pricing/markup rules and transfer-pricing documentation per jurisdiction",weekTarget:4},
+          {title:"IC reconciliation sample",desc:"Latest intercompany reconciliation showing due-to/due-from balances by entity",weekTarget:5},
+        ]
+      },
+
+      // ─── FINANCE AI (area-specific) ─────────────────────────────────────────────
+      { code:"FIN-AI", label:"Finance AI", manDays:8, weekTarget:8, isAI:true,
+        questions:[
+          {dim:"To-Be", q:"Where would AI add most value in finance — AP invoice capture/coding, anomaly/duplicate detection, cash-flow forecasting, collections prioritisation, or close acceleration?"},
+          {dim:"As-Is", q:"Which finance processes are highest-volume and most manual today (e.g. invoice matching, bank reconciliation, journal preparation) and therefore best automation candidates?"},
+          {dim:"Rules", q:"For AP automation / invoice capture, what document types, languages (Arabic/English), and formats must AI handle, and what match tolerance and approval thresholds apply?"},
+          {dim:"To-Be", q:"For cash-flow forecasting, what horizon and drivers matter (AR aging, AP terms, seasonality), and what accuracy would make it trusted by treasury?"},
+          {dim:"Rules", q:"What human-in-the-loop controls are required before AI-suggested postings, payments, or write-offs are actioned — confidence thresholds, dual approval, full audit trail?"},
+          {dim:"Rules", q:"What data-privacy, residency, and regulatory constraints (Kuwait/GCC) limit how financial data may be processed by AI services or copilots?"},
+          {dim:"Exception", q:"Where must a human always remain the decision-maker (e.g. payment release, period close sign-off), and what is the fallback when AI confidence is low?"},
+        ],
+        dataItems:[
+          {title:"Finance AI use-case shortlist",desc:"Prioritised AI use-cases (AP capture, anomaly detection, forecasting, collections) with expected benefit and data dependencies",weekTarget:4},
+          {title:"Invoice/document sample set",desc:"Representative AP invoices and finance documents (Arabic/English) for capture/automation evaluation",weekTarget:5},
+          {title:"AI governance & approval rules",desc:"Confidence thresholds, human-in-the-loop approval points, and audit requirements for finance AI",weekTarget:5},
+        ]
+      },
     ]
   },
   {
@@ -400,67 +549,175 @@ const WORKSTREAMS = [
           {title:"ADP / current payroll GL journal sample",desc:"Last 3 payroll run GL journals with account mapping",weekTarget:6},
         ]
       },
-      { code:"HR", label:"HR", manDays:10, weekTarget:6,
+
+
+      // ─── CORE HR / EMPLOYEE LIFECYCLE ───────────────────────────────────────────
+      { code:"HR", label:"Core HR & Employee Lifecycle", manDays:14, weekTarget:6,
         questions:[
-          {dim:"As-Is", q:"Describe how hr is handled today — systems, owners, and key pain points."},
-          {dim:"Rules", q:"What policies, approval workflows, and rules govern hr?"},
-          {dim:"To-Be", q:"What outcomes and reports do you need from hr in D365/Solvait?"},
-          {dim:"Exception", q:"What edge cases or exceptions in hr must the system handle?"},
+          {dim:"As-Is", q:"Describe the full employee lifecycle today — from offer/hire through transfers, promotions, and separation — and which systems hold the master employee record."},
+          {dim:"Rules", q:"What employee data must be maintained — personal, contact, dependents, nationality, visa/residency (Iqama/Civil ID), passport, qualifications, emergency contacts — and which fields are mandatory or sensitive?"},
+          {dim:"Rules", q:"How is the organization modelled — legal entities, departments, divisions, and the relationship between jobs, positions, and reporting lines?"},
+          {dim:"Rules", q:"What employment types and contracts exist — national vs expatriate, full-time/part-time/contract, fixed-term — and how do contract renewals and probation periods work?"},
+          {dim:"Rules", q:"What HR actions/workflows require approval — hire, transfer, promotion, salary change, termination — and what is the approval hierarchy for each?"},
+          {dim:"As-Is", q:"How are government/labour registrations handled today — Kuwait PACI/PIFSS, Shoon (work permits), GCC equivalents (KSA GOSI/Qiwa/Muqeem, UAE MOHRE) — and what data must flow to them?"},
+          {dim:"Rules", q:"What document management is required — visa/residency expiry tracking, passport, certificates, contracts — with renewal alerts and compliance reporting?"},
+          {dim:"Rules", q:"What nationalization/localization targets must be tracked (Kuwaitization, Saudization/Nitaqat, Emiratisation) and reported?"},
+          {dim:"To-Be", q:"What HR analytics does management need — headcount by entity/department/nationality, turnover, demographics, visa-expiry pipeline, nationalization ratios?"},
+          {dim:"Exception", q:"How are secondments, dual assignments, rehires, and grade/band exceptions handled?"},
+          {dim:"Exception", q:"How are disciplinary actions, grievances, and warnings recorded and governed?"},
         ],
         dataItems:[
-          {title:"HR policy / configuration",desc:"Current policy documents and configuration governing hr",weekTarget:6},
-          {title:"HR current data extract",desc:"Representative current-state data for hr to validate the future design",weekTarget:6},
+          {title:"Employee master data",desc:"All active employees: personal, contact, nationality, visa/Civil ID, grade, position, department, hire date, contract type",weekTarget:5},
+          {title:"Organization & position structure",desc:"Legal entities, departments, jobs, positions, reporting lines, and grade/band structure",weekTarget:5},
+          {title:"Document & compliance register",desc:"Visa/residency, passport, contract, and certificate records with expiry dates and renewal rules",weekTarget:6},
+          {title:"Nationalization targets",desc:"Current and target localization ratios per entity and the reporting basis",weekTarget:6},
         ]
       },
-      { code:"HRPAY", label:"Payroll", manDays:12, weekTarget:6,
+
+      // ─── PAYROLL (GCC) ──────────────────────────────────────────────────────────
+      { code:"HRPAY", label:"Payroll (GCC)", manDays:18, weekTarget:6,
         questions:[
-          {dim:"As-Is", q:"Describe how payroll is handled today — systems, owners, and key pain points."},
-          {dim:"Rules", q:"What policies, approval workflows, and rules govern payroll?"},
-          {dim:"To-Be", q:"What outcomes and reports do you need from payroll in D365/Solvait?"},
-          {dim:"Exception", q:"What edge cases or exceptions in payroll must the system handle?"},
+          {dim:"As-Is", q:"Describe the payroll operation per country — cycle (monthly), cut-off, who calculates and approves, and how many payrolls/legal entities are in scope?"},
+          {dim:"Rules", q:"What pay elements make up compensation — basic, housing, transport, other allowances, overtime, bonuses, deductions — and how is each taxed/treated?"},
+          {dim:"Rules", q:"How are social-security/pension contributions calculated per country — Kuwait PIFSS, KSA GOSI, plus other GCC schemes — including national vs expat treatment and ceilings?"},
+          {dim:"Rules", q:"How is End-of-Service (EOS) gratuity calculated by jurisdiction — Kuwait Labour Law, KSA, UAE — including basis (basic vs total), service brackets, and resignation vs termination differences?"},
+          {dim:"Rules", q:"What are the overtime rules — eligibility by grade, weekday/weekend/holiday multipliers — and how is overtime captured and approved?"},
+          {dim:"Rules", q:"How is the Wage Protection System (WPS) handled per country — bank file formats (Kuwait, KSA Mudad, UAE WPS), and validation/submission process?"},
+          {dim:"Rules", q:"How are employee loans and advances managed — types, eligibility by grade, repayment schedules, interest treatment, and payroll recovery?"},
+          {dim:"As-Is", q:"How is the payroll journal posted to finance — element-to-GL mapping, cost-centre/project allocation, and accrual treatment?"},
+          {dim:"Rules", q:"How are mid-cycle changes handled — new joiners, leavers, retro-pay, salary revisions, and proration rules?"},
+          {dim:"To-Be", q:"What payroll outputs are required — payslips (Arabic/English), bank files, GL journal, statutory reports, and management cost reports?"},
+          {dim:"Exception", q:"How are final settlements computed on resignation/termination — EOS, leave encashment, notice, loan clearance, and clawbacks?"},
+          {dim:"Exception", q:"How are off-cycle runs, corrections, and negative net pay handled?"},
         ],
         dataItems:[
-          {title:"Payroll policy / configuration",desc:"Current policy documents and configuration governing payroll",weekTarget:6},
-          {title:"Payroll current data extract",desc:"Representative current-state data for payroll to validate the future design",weekTarget:6},
+          {title:"Pay element catalogue",desc:"All earnings/deductions with calculation rules, GL mapping, and tax/social-security treatment per country",weekTarget:5},
+          {title:"Social security & EOS rules",desc:"PIFSS/GOSI/other contribution rules and EOS gratuity formulas per jurisdiction",weekTarget:5},
+          {title:"Salary scale & grade structure",desc:"Grades, salary ranges, and allowance entitlements per grade and nationality",weekTarget:5},
+          {title:"WPS bank file specs",desc:"Per-country WPS/bank transfer file formats and submission process",weekTarget:6},
+          {title:"Last 3 payroll runs (GL journal)",desc:"Recent payroll registers and GL journals with account mapping for validation",weekTarget:6},
         ]
       },
-      { code:"REC", label:"Recruitment", manDays:9, weekTarget:6,
+
+      // ─── TIME & ATTENDANCE / LEAVE ──────────────────────────────────────────────
+      { code:"TNA", label:"Time, Attendance & Leave", manDays:12, weekTarget:6,
         questions:[
-          {dim:"As-Is", q:"Describe how recruitment is handled today — systems, owners, and key pain points."},
-          {dim:"Rules", q:"What policies, approval workflows, and rules govern recruitment?"},
-          {dim:"To-Be", q:"What outcomes and reports do you need from recruitment in D365/Solvait?"},
-          {dim:"Exception", q:"What edge cases or exceptions in recruitment must the system handle?"},
+          {dim:"As-Is", q:"How is time and attendance captured today — biometric/clock devices, mobile, manual — and how does it feed payroll?"},
+          {dim:"Rules", q:"What work schedules/shift patterns exist — fixed, rotating, split shifts, Ramadan hours — and how are they assigned?"},
+          {dim:"Rules", q:"What are the leave types and accrual rules — annual, sick (with medical bands), maternity, paternity, Hajj, compassionate, unpaid — including carry-forward, encashment, and country differences?"},
+          {dim:"Rules", q:"How are public holidays managed across GCC countries and how do they interact with leave and overtime?"},
+          {dim:"Rules", q:"What are the attendance rules — late/early penalties, missing punches, grace periods — and how do exceptions flow to payroll?"},
+          {dim:"As-Is", q:"How are leave requests and approvals handled today, and what self-service is expected?"},
+          {dim:"To-Be", q:"What time/leave reporting does management need — attendance %, absence trends, leave liability/provision?"},
+          {dim:"Exception", q:"How are negative leave balances, leave cancellation, recall from leave, and leave-without-pay handled?"},
         ],
         dataItems:[
-          {title:"Recruitment policy / configuration",desc:"Current policy documents and configuration governing recruitment",weekTarget:6},
-          {title:"Recruitment current data extract",desc:"Representative current-state data for recruitment to validate the future design",weekTarget:6},
+          {title:"Shift & schedule definitions",desc:"All work patterns, shifts, Ramadan hours, and assignment rules",weekTarget:5},
+          {title:"Leave policy",desc:"All leave types, accrual rates, carry-forward, encashment rules per country",weekTarget:5},
+          {title:"Attendance device feed sample",desc:"Sample biometric/clock data and current integration to payroll",weekTarget:6},
         ]
       },
-      { code:"ESS", label:"Self-Service", manDays:8, weekTarget:6,
+
+      // ─── RECRUITMENT / TALENT ACQUISITION ───────────────────────────────────────
+      { code:"REC", label:"Recruitment & Onboarding", manDays:11, weekTarget:6,
         questions:[
-          {dim:"As-Is", q:"Describe how employee self-service is handled today — systems, owners, and key pain points."},
-          {dim:"Rules", q:"What policies, approval workflows, and rules govern employee self-service?"},
-          {dim:"To-Be", q:"What outcomes and reports do you need from employee self-service in D365/Solvait?"},
-          {dim:"Exception", q:"What edge cases or exceptions in employee self-service must the system handle?"},
+          {dim:"As-Is", q:"Describe the end-to-end recruitment process — requisition, approval, sourcing, screening, interview, offer, and hire — and the systems/portals used today."},
+          {dim:"Rules", q:"How are job requisitions raised and approved — budget/headcount check, position linkage, and approval hierarchy?"},
+          {dim:"Rules", q:"What sourcing channels are used — career site, job boards, agencies, referrals — and how are candidates tracked through stages?"},
+          {dim:"Rules", q:"What are the interview/assessment and offer-approval workflows, including salary-band validation and approval levels?"},
+          {dim:"Rules", q:"What pre-hire and onboarding steps are required — document collection, visa/work-permit initiation, medical, background checks — and how is onboarding orchestrated across HR/IT/admin?"},
+          {dim:"To-Be", q:"What recruitment KPIs are needed — time-to-hire, cost-per-hire, source effectiveness, offer-acceptance rate, pipeline by requisition?"},
+          {dim:"Exception", q:"How are internal transfers/promotions, candidate rejections/blacklisting, and offer withdrawals handled?"},
         ],
         dataItems:[
-          {title:"Employee Self-Service policy / configuration",desc:"Current policy documents and configuration governing employee self-service",weekTarget:6},
-          {title:"Employee Self-Service current data extract",desc:"Representative current-state data for employee self-service to validate the future design",weekTarget:6},
+          {title:"Recruitment workflow & stages",desc:"Requisition approval flow, pipeline stages, and assessment/offer approval rules",weekTarget:5},
+          {title:"Onboarding checklist",desc:"All pre-hire and onboarding tasks across HR, IT, admin, and government/visa steps",weekTarget:5},
+          {title:"Open requisitions & candidate data",desc:"Current open positions and any candidate pipeline to migrate",weekTarget:6},
         ]
       },
-      { code:"APPR", label:"Appraisals", manDays:9, weekTarget:6,
+
+      // ─── PERFORMANCE & APPRAISALS ───────────────────────────────────────────────
+      { code:"APPR", label:"Performance & Appraisals", manDays:9, weekTarget:6,
         questions:[
-          {dim:"As-Is", q:"Describe how appraisals & performance is handled today — systems, owners, and key pain points."},
-          {dim:"Rules", q:"What policies, approval workflows, and rules govern appraisals & performance?"},
-          {dim:"To-Be", q:"What outcomes and reports do you need from appraisals & performance in D365/Solvait?"},
-          {dim:"Exception", q:"What edge cases or exceptions in appraisals & performance must the system handle?"},
+          {dim:"As-Is", q:"Describe the performance management cycle today — goal setting, mid-year, annual review — and who participates at each stage."},
+          {dim:"Rules", q:"What appraisal model is used — KPIs/OKRs, competencies, ratings scale, weightings — and how are goals cascaded from company to individual?"},
+          {dim:"Rules", q:"What review workflow and calibration process applies — self-assessment, manager review, skip-level, calibration committee, and rating distribution?"},
+          {dim:"Rules", q:"How do appraisal outcomes link to rewards — merit increase, bonus, promotion eligibility — and what are the rules?"},
+          {dim:"To-Be", q:"What performance analytics does HR/management need — rating distributions, goal completion, 9-box/talent grids, low-performer tracking?"},
+          {dim:"Exception", q:"How are performance improvement plans, mid-cycle role changes, and appraisal disputes handled?"},
         ],
         dataItems:[
-          {title:"Appraisals & Performance policy / configuration",desc:"Current policy documents and configuration governing appraisals & performance",weekTarget:6},
-          {title:"Appraisals & Performance current data extract",desc:"Representative current-state data for appraisals & performance to validate the future design",weekTarget:6},
+          {title:"Appraisal model & rating scale",desc:"Competency/KPI framework, rating scale, weightings, and cycle calendar",weekTarget:5},
+          {title:"Goal cascade structure",desc:"How company objectives map to department and individual goals",weekTarget:5},
+          {title:"Reward linkage rules",desc:"How ratings drive merit, bonus, and promotion decisions",weekTarget:6},
         ]
       },
-      aiModule("HRMS-AI","HRMS AI",8,8),
+
+      // ─── BENEFITS & EMPLOYEE SERVICES ───────────────────────────────────────────
+      { code:"BEN", label:"Benefits & Employee Services", manDays:8, weekTarget:6,
+        questions:[
+          {dim:"As-Is", q:"What benefits are offered — medical/life insurance, air tickets, schooling, housing, mobile — and how are eligibility and enrolment managed today?"},
+          {dim:"Rules", q:"What are the eligibility and entitlement rules per benefit by grade, nationality, and family status, including dependents coverage?"},
+          {dim:"Rules", q:"How are air-ticket entitlements, housing allowances, and education allowances calculated and tracked (accrual, frequency, encashment)?"},
+          {dim:"Rules", q:"How is medical insurance administered — providers, member additions/deletions, and reconciliation of premiums?"},
+          {dim:"To-Be", q:"What employee-services self-service is expected — benefit enrolment, salary certificates, letters (bank, embassy, NOC), document requests?"},
+          {dim:"Exception", q:"How are benefit changes on life events (marriage, new dependent, grade change) and benefit clawbacks handled?"},
+        ],
+        dataItems:[
+          {title:"Benefits catalogue & eligibility",desc:"All benefits with eligibility rules by grade/nationality and entitlement values",weekTarget:5},
+          {title:"Insurance member data",desc:"Current medical/life insurance enrolment and dependent coverage",weekTarget:6},
+          {title:"Letter/certificate templates",desc:"Standard HR letters and certificates issued via self-service",weekTarget:6},
+        ]
+      },
+
+      // ─── LEARNING & DEVELOPMENT ─────────────────────────────────────────────────
+      { code:"LND", label:"Learning & Development", manDays:7, weekTarget:6,
+        questions:[
+          {dim:"As-Is", q:"How is training managed today — needs identification, nomination, delivery, and tracking — and is there an existing LMS?"},
+          {dim:"Rules", q:"How are training needs derived — from appraisals, competency gaps, mandatory/compliance training — and what is the nomination/approval flow?"},
+          {dim:"Rules", q:"How are courses, sessions, trainers, costs, and attendance tracked, including certifications with expiry?"},
+          {dim:"To-Be", q:"What L&D reporting is needed — training hours per employee, budget vs actual, compliance completion, competency development?"},
+          {dim:"Exception", q:"How are external certifications, training bonds/clawbacks, and no-shows handled?"},
+        ],
+        dataItems:[
+          {title:"Course & competency catalogue",desc:"Training courses, competencies, and any certification requirements with expiry",weekTarget:5},
+          {title:"Training plan & budget",desc:"Annual training plan, nominations, and L&D budget",weekTarget:6},
+        ]
+      },
+
+      // ─── EMPLOYEE SELF-SERVICE ──────────────────────────────────────────────────
+      { code:"ESS", label:"Employee & Manager Self-Service", manDays:8, weekTarget:6,
+        questions:[
+          {dim:"As-Is", q:"What self-service exists today and what do employees most need — leave, payslips, claims, document requests, profile updates?"},
+          {dim:"Rules", q:"What employee self-service transactions are in scope and what approval routing applies to each?"},
+          {dim:"Rules", q:"What manager self-service is required — team leave approval, attendance, appraisals, requisitions, team data views?"},
+          {dim:"Rules", q:"What mobile experience and notifications are expected, and in which languages (Arabic/English)?"},
+          {dim:"To-Be", q:"What workflow/notification rules and delegation (acting manager during leave) are needed?"},
+          {dim:"Exception", q:"How are delegation, escalation on no-action, and self-service access for field/non-desk staff handled?"},
+        ],
+        dataItems:[
+          {title:"Self-service transaction list",desc:"All ESS/MSS transactions in scope with their approval routing",weekTarget:5},
+          {title:"Notification & delegation rules",desc:"Workflow notifications, escalation, and delegation rules",weekTarget:6},
+        ]
+      },
+
+      // ─── HR AI (area-specific) ──────────────────────────────────────────────────
+      { code:"HRMS-AI", label:"HR AI", manDays:8, weekTarget:8, isAI:true,
+        questions:[
+          {dim:"To-Be", q:"Where would AI add most value in HR — CV screening/shortlisting, attrition/flight-risk prediction, leave/headcount forecasting, payroll anomaly detection, or HR query chatbot?"},
+          {dim:"As-Is", q:"Which HR processes are highest-volume and most manual (CV screening, leave queries, document/letter generation) and best suited to automation?"},
+          {dim:"Rules", q:"For CV screening, what languages (Arabic/English) and document formats must AI handle, and what fairness/bias and human-review controls are required before shortlisting?"},
+          {dim:"Rules", q:"For an HR assistant/chatbot, what policy and data sources would ground it, and what employee-data access boundaries apply?"},
+          {dim:"To-Be", q:"For attrition prediction, what signals are available and how would HR act on a risk score without unfair impact on employees?"},
+          {dim:"Rules", q:"What data-privacy, employee-consent, and GCC data-residency constraints govern AI use on personal HR data?"},
+          {dim:"Exception", q:"Where must a human always decide (hiring, termination, appraisal rating), and what is the fallback when AI confidence is low?"},
+        ],
+        dataItems:[
+          {title:"HR AI use-case shortlist",desc:"Prioritised HR AI use-cases (screening, attrition, assistant) with benefit and data dependencies",weekTarget:4},
+          {title:"Sample HR documents/CVs",desc:"Representative CVs and HR documents (Arabic/English) for AI evaluation",weekTarget:5},
+          {title:"HR AI governance rules",desc:"Bias/fairness controls, consent, residency, and human-in-the-loop approval points",weekTarget:5},
+        ]
+      },
     ]
   },
   {
@@ -491,67 +748,127 @@ const WORKSTREAMS = [
           {title:"Historical service cases (if migrating)",desc:"Open cases to be migrated — case ID, customer, description, status",weekTarget:8},
         ]
       },
-      { code:"SALES", label:"Sales", manDays:10, weekTarget:7,
+
+
+      // ─── SALES (D365 Sales) ─────────────────────────────────────────────────────
+      { code:"SALES", label:"Sales", manDays:13, weekTarget:7,
         questions:[
-          {dim:"As-Is", q:"Describe how sales is handled today — systems, owners, and key pain points."},
-          {dim:"Rules", q:"What policies, approval workflows, and rules govern sales?"},
-          {dim:"To-Be", q:"What outcomes and reports do you need from sales in D365/Solvait?"},
-          {dim:"Exception", q:"What edge cases or exceptions in sales must the system handle?"},
+          {dim:"As-Is", q:"Walk us through the full lead-to-cash sales motion today — lead capture, qualification, opportunity, quote, order — and the systems/handoffs at each step."},
+          {dim:"Rules", q:"How should leads be captured and qualified — sources, lead scoring/qualification criteria, and conversion to opportunity/account/contact?"},
+          {dim:"Rules", q:"What is the opportunity sales process — stages, gate criteria, probability, and required fields/activities to advance each stage?"},
+          {dim:"Rules", q:"How is the product catalog, price lists, and quoting handled — multiple price lists (by segment/currency), discounts, approval thresholds, and quote-to-order conversion?"},
+          {dim:"Rules", q:"How does Sales integrate with finance/ERP — does an accepted quote/order flow to D365 F&O, and how are accounts/customers kept in sync (master data ownership)?"},
+          {dim:"As-Is", q:"How are sales activities and customer interactions tracked — calls, emails, meetings — and is Outlook/Teams/email integration required?"},
+          {dim:"Rules", q:"What territory, team-selling, and assignment rules apply — by region, segment, named accounts — and how are commissions/targets tracked (if in scope)?"},
+          {dim:"To-Be", q:"What sales analytics and dashboards are needed — pipeline value/coverage, win rate, forecast, activity, sales-rep performance?"},
+          {dim:"Rules", q:"What forecasting is required — forecast categories, hierarchy roll-up, and cadence?"},
+          {dim:"Exception", q:"How are lost opportunities, re-opened deals, duplicate leads, and key-account/tiered handling managed?"},
         ],
         dataItems:[
-          {title:"Sales policy / configuration",desc:"Current policy documents and configuration governing sales",weekTarget:6},
-          {title:"Sales current data extract",desc:"Representative current-state data for sales to validate the future design",weekTarget:6},
+          {title:"Sales process & stage definitions",desc:"Lead/opportunity stages, qualification criteria, and required activities per stage",weekTarget:6},
+          {title:"Product catalog & price lists",desc:"Products, units, price lists by segment/currency, and discount/approval rules",weekTarget:6},
+          {title:"Account & contact master",desc:"Current accounts, contacts, and the master-data ownership/sync rules with ERP",weekTarget:6},
+          {title:"Open pipeline",desc:"All active opportunities: account, value, stage, expected close, owner",weekTarget:7},
         ]
       },
-      { code:"CCTR", label:"Contact Center", manDays:9, weekTarget:7,
+
+      // ─── CUSTOMER SERVICE (D365 Customer Service) ───────────────────────────────
+      { code:"CSVC", label:"Customer Service", manDays:14, weekTarget:7,
         questions:[
-          {dim:"As-Is", q:"Describe how contact center is handled today — systems, owners, and key pain points."},
-          {dim:"Rules", q:"What policies, approval workflows, and rules govern contact center?"},
-          {dim:"To-Be", q:"What outcomes and reports do you need from contact center in D365/Solvait?"},
-          {dim:"Exception", q:"What edge cases or exceptions in contact center must the system handle?"},
+          {dim:"As-Is", q:"Describe the case/ticket lifecycle today — how cases arrive, get assigned, worked, and resolved — and the volumes by channel."},
+          {dim:"Rules", q:"How should cases be categorized and prioritized, and what queues/routing rules assign them to teams/agents (skills-based, round-robin, segment)?"},
+          {dim:"Rules", q:"What SLAs and entitlements apply — first-response and resolution targets by priority/customer tier, business hours/holiday calendars, and pause/breach rules?"},
+          {dim:"Rules", q:"Is a knowledge base required — article authoring, approval, versioning, and surfacing to agents/customers — and in which languages (Arabic/English)?"},
+          {dim:"Rules", q:"What entitlements/contracts govern support — per-incident, per-period, by product — and how is consumption tracked?"},
+          {dim:"As-Is", q:"How are escalations handled — triggers, levels, notifications, and management visibility?"},
+          {dim:"To-Be", q:"Is a self-service customer portal needed — case submission, status tracking, KB access — and what branding/auth?"},
+          {dim:"To-Be", q:"What service analytics are required — SLA compliance, case volume/aging, CSAT, agent productivity, first-contact resolution?"},
+          {dim:"Exception", q:"How are reopened cases, merged duplicates, parent-child cases, and after-hours handling managed?"},
         ],
         dataItems:[
-          {title:"Contact Center policy / configuration",desc:"Current policy documents and configuration governing contact center",weekTarget:6},
-          {title:"Contact Center current data extract",desc:"Representative current-state data for contact center to validate the future design",weekTarget:6},
+          {title:"Case categories & routing rules",desc:"Case types, priorities, queues, and routing/assignment rules",weekTarget:6},
+          {title:"SLA & entitlement matrix",desc:"SLA targets by priority/tier, business-hour calendars, and entitlement/contract definitions",weekTarget:6},
+          {title:"Knowledge base content",desc:"Existing KB articles to migrate and the authoring/approval workflow",weekTarget:7},
+          {title:"Historical cases (if migrating)",desc:"Open/recent cases for migration with status and history",weekTarget:7},
         ]
       },
-      { code:"CSVC", label:"Customer Service", manDays:10, weekTarget:7,
+
+      // ─── CONTACT CENTER / OMNICHANNEL ───────────────────────────────────────────
+      { code:"CCTR", label:"Contact Center & Omnichannel", manDays:12, weekTarget:7,
         questions:[
-          {dim:"As-Is", q:"Describe how customer service is handled today — systems, owners, and key pain points."},
-          {dim:"Rules", q:"What policies, approval workflows, and rules govern customer service?"},
-          {dim:"To-Be", q:"What outcomes and reports do you need from customer service in D365/Solvait?"},
-          {dim:"Exception", q:"What edge cases or exceptions in customer service must the system handle?"},
+          {dim:"As-Is", q:"What channels do customers use to reach you — phone, email, WhatsApp, web chat, social — and what are the volumes and current tools per channel?"},
+          {dim:"Rules", q:"Which channels are in scope for omnichannel, and what routing/queue/capacity rules apply per channel (skills, priority, concurrency)?"},
+          {dim:"Rules", q:"Is telephony/IVR integration required, and with which provider — and what are the call-handling, recording, and wrap-up requirements?"},
+          {dim:"Rules", q:"Is WhatsApp/social messaging required (a key GCC channel), including templates, business-initiated messages, and consent?"},
+          {dim:"Rules", q:"What chatbot/virtual-agent deflection is wanted before human handoff, and in which languages (Arabic/English)?"},
+          {dim:"To-Be", q:"What contact-center analytics are needed — channel volumes, AHT, queue wait, agent occupancy, deflection rate, CSAT?"},
+          {dim:"Exception", q:"How are channel transfers, escalation to a human, and after-hours/overflow handled?"},
         ],
         dataItems:[
-          {title:"Customer Service policy / configuration",desc:"Current policy documents and configuration governing customer service",weekTarget:6},
-          {title:"Customer Service current data extract",desc:"Representative current-state data for customer service to validate the future design",weekTarget:6},
+          {title:"Channel inventory & volumes",desc:"All customer channels with volumes, current tooling, and integration needs",weekTarget:6},
+          {title:"Routing & capacity rules",desc:"Per-channel queues, skills, priority, and agent capacity profiles",weekTarget:7},
+          {title:"Telephony/messaging provider details",desc:"IVR/telephony and WhatsApp/social provider specs and integration requirements",weekTarget:7},
         ]
       },
-      { code:"FSVC", label:"Field Services", manDays:10, weekTarget:7,
+
+      // ─── FIELD SERVICE (D365 Field Service) ─────────────────────────────────────
+      { code:"FSVC", label:"Field Service", manDays:15, weekTarget:8,
         questions:[
-          {dim:"As-Is", q:"Describe how field services is handled today — systems, owners, and key pain points."},
-          {dim:"Rules", q:"What policies, approval workflows, and rules govern field services?"},
-          {dim:"To-Be", q:"What outcomes and reports do you need from field services in D365/Solvait?"},
-          {dim:"Exception", q:"What edge cases or exceptions in field services must the system handle?"},
+          {dim:"As-Is", q:"Describe field operations today — service/maintenance work, who dispatches, how technicians receive and report jobs, and the volumes."},
+          {dim:"Rules", q:"How are work orders generated — from cases, agreements, IoT, or proactively — and what types/priorities and required skills apply?"},
+          {dim:"Rules", q:"What scheduling and dispatch is needed — manual board, resource scheduling optimization, skills/territory matching, travel time, and SLA-driven scheduling?"},
+          {dim:"Rules", q:"What asset and maintenance management is required — customer assets, service history, preventive maintenance schedules, and warranty?"},
+          {dim:"Rules", q:"What service agreements/contracts drive recurring work — entitlements, included visits, and billing?"},
+          {dim:"Rules", q:"What inventory and parts management is needed — truck stock, parts consumption on work orders, returns/RMA, and replenishment?"},
+          {dim:"Rules", q:"What mobile capability do technicians need — offline work-order access, parts/time capture, photos, customer signature, and how does it integrate with billing?"},
+          {dim:"To-Be", q:"What field-service analytics are needed — first-time-fix rate, technician utilization, SLA compliance, travel, and cost per work order?"},
+          {dim:"Exception", q:"How are reschedules, no-access visits, follow-up work orders, and emergency/after-hours dispatch handled?"},
         ],
         dataItems:[
-          {title:"Field Services policy / configuration",desc:"Current policy documents and configuration governing field services",weekTarget:6},
-          {title:"Field Services current data extract",desc:"Representative current-state data for field services to validate the future design",weekTarget:6},
+          {title:"Work order types & lifecycle",desc:"Work-order types, priorities, required skills, and status lifecycle",weekTarget:6},
+          {title:"Resources, skills & territories",desc:"Field technicians, skills/certifications, territories, and working hours",weekTarget:7},
+          {title:"Assets & maintenance schedules",desc:"Customer assets, service history, and preventive-maintenance plans",weekTarget:7},
+          {title:"Parts & truck-stock data",desc:"Service parts, truck-stock levels, and consumption/replenishment rules",weekTarget:8},
         ]
       },
-      { code:"PROJOPS", label:"Project Operations", manDays:12, weekTarget:7,
+
+      // ─── PROJECT OPERATIONS (D365 Project Operations) ───────────────────────────
+      { code:"PROJOPS", label:"Project Operations", manDays:16, weekTarget:8,
         questions:[
-          {dim:"As-Is", q:"Describe how project operations is handled today — systems, owners, and key pain points."},
-          {dim:"Rules", q:"What policies, approval workflows, and rules govern project operations?"},
-          {dim:"To-Be", q:"What outcomes and reports do you need from project operations in D365/Solvait?"},
-          {dim:"Exception", q:"What edge cases or exceptions in project operations must the system handle?"},
+          {dim:"As-Is", q:"Describe how you sell and deliver projects today — opportunity to contract to delivery — and how project finance is currently handled."},
+          {dim:"Rules", q:"What project contract types apply — fixed-price, time-and-materials, milestone-based — and how are they quoted and approved?"},
+          {dim:"Rules", q:"How is project planning done — WBS, tasks, dependencies, estimates — and what scheduling needs exist?"},
+          {dim:"Rules", q:"How is resourcing managed — role requirements, resource requests, skills-based assignment, and utilization/capacity planning?"},
+          {dim:"Rules", q:"How are time and expense captured against projects — entry, approval, and flow to billing and payroll/costing?"},
+          {dim:"Rules", q:"How is project billing and revenue recognition handled — milestone/progress billing, fixed-price revenue recognition, and integration with D365 F&O Project Accounting (which system owns what)?"},
+          {dim:"To-Be", q:"What project analytics are needed — margin, budget vs actual, utilization, WIP, backlog, and project profitability?"},
+          {dim:"Exception", q:"How are change orders, scope changes, project budget overruns, and contract amendments handled?"},
         ],
         dataItems:[
-          {title:"Project Operations policy / configuration",desc:"Current policy documents and configuration governing project operations",weekTarget:6},
-          {title:"Project Operations current data extract",desc:"Representative current-state data for project operations to validate the future design",weekTarget:6},
+          {title:"Project contract & billing rules",desc:"Contract types, billing methods, and revenue-recognition rules",weekTarget:6},
+          {title:"WBS & estimation templates",desc:"Standard work breakdown structures, task templates, and estimation approach",weekTarget:7},
+          {title:"Resource & role catalogue",desc:"Roles, skills, cost/bill rates, and resourcing/capacity rules",weekTarget:7},
+          {title:"F&O integration design",desc:"How Project Operations and F&O Project Accounting split ownership of cost, billing, and revenue",weekTarget:8},
         ]
       },
-      aiModule("CRM-AI","CRM AI",8,8),
+
+      // ─── CRM AI (area-specific) ─────────────────────────────────────────────────
+      { code:"CRM-AI", label:"CRM AI", manDays:8, weekTarget:8, isAI:true,
+        questions:[
+          {dim:"To-Be", q:"Where would AI add most value across CRM — lead/opportunity scoring, next-best-action, case classification/routing, sentiment analysis, agent-assist/summarization, or KB-grounded chatbot?"},
+          {dim:"As-Is", q:"Which CRM processes are highest-volume and most manual (case triage, email responses, KB search, call summaries) and best suited to AI assistance?"},
+          {dim:"Rules", q:"For a customer-facing or agent-assist bot, what knowledge sources ground it, what languages (Arabic/English), and what handoff-to-human rules apply?"},
+          {dim:"To-Be", q:"For lead/opportunity scoring, what signals are available and how would sales act on a score, with what human oversight?"},
+          {dim:"Rules", q:"For case sentiment/auto-classification, what accuracy and human-review thresholds are required before auto-routing or auto-response?"},
+          {dim:"Rules", q:"What data-privacy, customer-consent, and GCC data-residency constraints govern AI processing of customer data and conversations?"},
+          {dim:"Exception", q:"Where must a human always remain in control (case closure, customer commitments, escalations), and what is the fallback when AI confidence is low?"},
+        ],
+        dataItems:[
+          {title:"CRM AI use-case shortlist",desc:"Prioritised CRM AI use-cases (scoring, classification, agent-assist, chatbot) with benefit and data dependencies",weekTarget:4},
+          {title:"Sample interactions & KB",desc:"Representative cases, emails, chats (Arabic/English) and KB content for AI evaluation",weekTarget:5},
+          {title:"CRM AI governance rules",desc:"Confidence thresholds, consent, residency, and human-in-the-loop/handoff points",weekTarget:5},
+        ]
+      },
     ]
   },
 ];
