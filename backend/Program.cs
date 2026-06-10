@@ -42,6 +42,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuer = false,
             ValidateIssuerSigningKey = true,
             ValidateLifetime = true,
+            // With MapInboundClaims=false, tell the identity which claim is the
+            // "name" so RequireAuthenticatedUser / [Authorize] accepts the principal.
+            // Entra tokens may carry any of these; the identity just needs one.
+            NameClaimType = "preferred_username",
+            RoleClaimType = "roles",
         };
     });
 

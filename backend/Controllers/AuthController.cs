@@ -20,13 +20,25 @@ public class AuthController : ControllerBase
         var user = await _current.ResolveAsync(User);
         if (user == null)
         {
-            // DIAGNOSTIC: surface the token's claim types in the response so we can
-            // see exactly what identifier the token carries (no values — types only).
             var claimTypes = User.Claims.Select(c => c.Type).Distinct().ToArray();
             return StatusCode(401, new { error = "Could not resolve user from token", claimTypes });
         }
-        // Return the user even when pending/inactive so the portal can show a
-        // friendly "awaiting approval" state rather than a hard error.
         return Ok(user);
+    }
+
+    // DIAGNOSTIC (anonymous): always runs, even if [Authorize] would reject, so we
+    // can see whether a token arrived and what claims/identity it produced.
+    [AllowAnonymous]
+    [HttpGet("whoami")]
+    public IActionResult WhoAmI()
+    {
+        return Ok(new
+        {
+            isAuthenticated = User?.Identity?.IsAuthenticated ?? false,
+            authType = User?.Identity?.AuthenticationType,
+            name = User?.Identity?.Name,
+            claimTypes = User?.Claims.Select(c => c.Type).Distinct().ToArray() ?? Array.Empty<string>(),
+            hasAuthHeader = Request.Headers.ContainsKey("Authorization")
+        });
     }
 }
