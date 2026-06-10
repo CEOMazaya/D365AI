@@ -679,14 +679,15 @@ function UserMenu({user,onLogout,onAdmin,hasAdmin}){
 // ═══════════════════════════════════════════════════════════════════════════
 // TOP NAV
 // ═══════════════════════════════════════════════════════════════════════════
-function TopNav({crumbs,actions,user,onLogout,onAdmin,hasAdmin}){
+function TopNav({crumbs,breadcrumbs,actions,user,onLogout,onAdmin,hasAdmin}){
+  const crumbList=crumbs||breadcrumbs||[];
   return(
     <div style={{background:NAVY,padding:"0 24px",display:"flex",alignItems:"center",justifyContent:"space-between",minHeight:52,gap:12,position:"sticky",top:0,zIndex:200,boxShadow:"0 2px 8px rgba(0,0,0,.18)",flexWrap:"wrap"}}>
       <div style={{display:"flex",alignItems:"center",gap:16}}>
         <div dangerouslySetInnerHTML={{__html:MAZAYA_LOGO}} style={{display:"flex",alignItems:"center",flexShrink:0}}/>
         <div style={{width:1,height:24,background:"rgba(255,255,255,.2)"}}/>
         <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
-          {crumbs.map((b,i)=>(<span key={i} style={{display:"flex",alignItems:"center",gap:6}}>
+          {crumbList.map((b,i)=>(<span key={i} style={{display:"flex",alignItems:"center",gap:6}}>
             {i>0&&<span style={{color:"rgba(255,255,255,.3)",fontSize:12}}>›</span>}
             {b.onClick?<button onClick={b.onClick} style={{background:"none",border:"none",color:"rgba(255,255,255,.7)",fontSize:13,fontWeight:500,cursor:"pointer",padding:0,fontFamily:"var(--fh)"}}>{b.label}</button>:<span style={{color:"#fff",fontSize:13,fontWeight:600}}>{b.label}</span>}
           </span>))}
