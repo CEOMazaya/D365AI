@@ -1,0 +1,135 @@
+// ============================================================================
+// API-backed storage shim (Entra ID authenticated)
+// ----------------------------------------------------------------------------
+// The portal talks to a small async key-value API: storage.get/set/delete/list.
+// This implementation backs that API with the .NET backend instead of
+// localStorage, so all users share one server-side copy of the data.
+//
+// It works as a "state blob" bridge: the portal keeps treating mz_db_v1 etc. as
+// whole-JSON documents, and this shim persists each document to the backend's
+// /api/state/{key} endpoint. That gives you shared, multi-user data with no
+// changes to any portal screen.
+//
+// When you're ready to use the fully relational endpoints (customers, projects,
+// risks, change-requests, ...), replace the bodies here with per-entity fetch()
+// calls — the seam stays in this one file.
+//
+// AUTH: tokens come from MSAL. Configure VITE_* env vars (see .env.example) and
+// the portal will acquire an Entra ID token and send it as a bearer on every
+// request. If MSAL isn't configured, it falls back to localStorage so the demo
+// still runs offline.
+// ============================================================================
+
+import { PublicClientApplication, InteractionRequiredAuthError } from "@azure/msal-browser";
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
+const CLIENT_ID = import.meta.env.VITE_AAD_CLIENT_ID || "";
+const TENANT_ID = import.meta.env.VITE_AAD_TENANT_ID || "";
+const API_SCOPE = import.meta.env.VITE_API_SCOPE || "";
+
+const msalConfigured = Boolean(API_BASE && CLIENT_ID && TENANT_ID && API_SCOPE);
+
+let msal = null;
+if (msalConfigured) {
+  msal = new PublicClientApplication({
+    auth: {
+      clientId: CLIENT_ID,
+      authority: `https://login.microsoftonline.com/${TENANT_ID}`,
+      redirectUri: window.location.origin,
+    },
+    cache: { cacheLocation: "localStorage" },
+  });
+}
+
+async function getToken() {
+  if (!msal) return null;
+  await msal.initialize();
+  let account = msal.getActiveAccount() || msal.getAllAccounts()[0];
+  if (!account) {
+    const res = await msal.loginPopup({ scopes: [API_SCOPE] });
+    account = res.account;
+    msal.setActiveAccount(account);
+  }
+  try {
+    const res = await msal.acquireTokenSilent({ scopes: [API_SCOPE], account });
+    return res.accessToken;
+  } catch (e) {
+    if (e instanceof InteractionRequiredAuthError) {
+      const res = await msal.acquireTokenPopup({ scopes: [API_SCOPE] });
+      return res.accessToken;
+    }
+    throw e;
+  }
+}
+
+async function api(path, options = {}) {
+  const token = await getToken();
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers || {}),
+    },
+  });
+  if (!res.ok && res.status !== 404) throw new Error(`API ${res.status} on ${path}`);
+  return res;
+}
+
+// Storage API backed by the backend's /api/state/{key} document store.
+const apiStorage = {
+  async get(key) {
+    const res = await api(`/api/state/${encodeURIComponent(key)}`);
+    if (res.status === 404) return null;
+    const data = await res.json();
+    return data && data.value != null ? { key, value: data.value } : null;
+  },
+  async set(key, value) {
+    await api(`/api/state/${encodeURIComponent(key)}`, {
+      method: "PUT",
+      body: JSON.stringify({ value }),
+    });
+    return { key, value };
+  },
+  async delete(key) {
+    await api(`/api/state/${encodeURIComponent(key)}`, { method: "DELETE" });
+    return { key, deleted: true };
+  },
+  async list(prefix = "") {
+    const res = await api(`/api/state?prefix=${encodeURIComponent(prefix)}`);
+    if (res.status === 404) return { keys: [], prefix };
+    const data = await res.json();
+    return { keys: data.keys || [], prefix };
+  },
+};
+
+// localStorage fallback (offline demo, unchanged from the standalone shim).
+const localStorageShim = {
+  async get(key) {
+    const v = localStorage.getItem(key);
+    return v === null ? null : { key, value: v };
+  },
+  async set(key, value) {
+    localStorage.setItem(key, value);
+    return { key, value };
+  },
+  async delete(key) {
+    localStorage.removeItem(key);
+    return { key, deleted: true };
+  },
+  async list(prefix = "") {
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(prefix)) keys.push(k);
+    }
+    return { keys, prefix };
+  },
+};
+
+if (typeof window !== "undefined" && !window.storage) {
+  window.storage = msalConfigured ? apiStorage : localStorageShim;
+  if (!msalConfigured) {
+    console.info("[storage] MSAL/API not configured — using localStorage (per-browser data).");
+  }
+}
