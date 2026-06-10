@@ -1,5 +1,4 @@
 name: Azure Static Web Apps CI/CD
-
 on:
   push:
     branches:
@@ -8,7 +7,6 @@ on:
     types: [opened, synchronize, reopened, closed]
     branches:
       - main
-
 jobs:
   build_and_deploy_job:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
@@ -19,20 +17,24 @@ jobs:
         with:
           submodules: true
           lfs: false
+      - name: Create Vite env file
+        run: |
+          cat > portal/.env.production << 'EOF'
+          VITE_API_BASE_URL=https://mazaya-rga-api.thankfulwave-880c6163.uaenorth.azurecontainerapps.io
+          VITE_AAD_CLIENT_ID=af9c0f28-ff59-440a-9d4a-213d80ba6737
+          VITE_AAD_TENANT_ID=ff78c7d4-c804-4473-a943-a9c2c521a03b
+          VITE_API_SCOPE=api://716c789a-5c4f-42c2-8063-3bb388eb541a/access_as_user
+          EOF
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_ASHY_COAST_02F7EE903 }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for Github integrations (i.e. PR comments)
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
-          # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
-          app_location: "portal" # App source code path
-          api_location: "" # Api source code path - optional
-          output_location: "dist" # Built app content directory - optional
-          ###### End of Repository/Build Configurations ######
-
+          app_location: "portal"
+          api_location: ""
+          output_location: "dist"
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
